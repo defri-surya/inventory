@@ -19,31 +19,224 @@
 
     <!-- Navbar Items-->
     <ul class="navbar-nav align-items-center ms-auto">
-        <!-- User Profile Image with Notification Icon -->
-        <li class="nav-item mx-5">
-            <div class="dropdown">
-                <a class="btn btn-icon btn-transparent-dark dropdown-toggle" href="#" role="button"
-                    id="notificationsDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="notification-icon">
-                        <i class="fa fa-bell"></i>
-                    </span>
+        @php
+            use Illuminate\Support\Carbon;
+            use Illuminate\Support\Facades\Cache;
+            use App\Models\Product;
+            use App\Models\ProductToko;
+            use App\Models\Purchase;
+        @endphp
+        @role('Owner')
+            @php
+                $cacheDuration = 10;
 
-                    <span class="badge bg-danger position-absolute mt-1 top-0 start-100 translate-middle pulse-badge">
-                        <span id="notificationCount">0</span>
+                // Mengambil hasil dari cache atau menjalankan query jika cache tidak tersedia
+                // Menyimpan hasil query ke dalam cache
+                $countlowStockProducts = Product::where('stock', '<=', 'min_stock')->count();
+                $countdueDatePurchase = Purchase::where('purchase_due_date', '!=', null)
+                    ->where('purchase_due_date', '<', Carbon::now())
+                    ->count();
+                $result = $countdueDatePurchase + $countlowStockProducts;
+                // dd($result);
+
+                $notifications = Cache::remember('low_product_notif_owner', $cacheDuration * 60, function () {
+                    // Fetch products where stock is less than or equal to the min_stock
+                    $lowStockProducts = Product::where('stock', '<=', 'min_stock')->get();
+
+                    // Fetch purchases with due dates earlier than the current date and time
+                    $dueDatePurchase = Purchase::where('purchase_due_date', '!=', null)
+                        ->where('purchase_due_date', '<', Carbon::now())
+                        ->get();
+
+                    // Combine low stock products and due date purchases into a single array
+                    return array_merge($lowStockProducts->toArray(), $dueDatePurchase->toArray());
+                });
+            @endphp
+            <!-- User Profile Image with Notification Icon -->
+            <li class="nav-item mx-5">
+                <button type="button" class="btn btn-sm rounded position-relative" data-bs-toggle="modal"
+                    data-bs-target="#modalNotification">
+                    <i class="fa fa-bell fs-6"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ $result }}
                         <span class="visually-hidden">unread messages</span>
                     </span>
-                    <!-- User Profile Image (for demonstration) -->
-                    <!-- <img class="img-fluid user-profile-image" src="https://via.placeholder.com/40" /> -->
-                </a>
-                <div class="dropdown-menu dropdown-menu-end border-0 shadow animated--fade-in-up"
-                    aria-labelledby="notificationsDropdown">
-                    <div class="dropdown-header">Notifications</div>
-                    <div id="notification-list">
-                        <!-- Notifications will be displayed here -->
+                </button>
+            </li>
+
+            <!-- Modal -->
+            <div class="modal fade" id="modalNotification" tabindex="-1" aria-labelledby="modalNotificationLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Notifications</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-dark">
+                            <ul>
+                                @foreach ($notifications as $notification)
+                                    <li>
+                                        @if (isset($notification['product_name']))
+                                            <strong>{{ $notification['product_name'] }}</strong> is low on
+                                            stock. Current stock: {{ $notification['stock'] }}
+                                        @elseif(isset($notification['purchase_due_date']))
+                                            Batas Pembayaran Pembelian Barang Sudah Jatuh Tempo Pada:
+                                            {{ $notification['purchase_due_date'] }}
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </li>
+        @endrole
+        @role('Admin_Toko')
+            @php
+                $cacheDuration = 10;
+
+                // Mengambil hasil dari cache atau menjalankan query jika cache tidak tersedia
+                // Menyimpan hasil query ke dalam cache
+                $countlowStockProducts = ProductToko::where('stock', '<=', 'min_stock')->count();
+                $countdueDatePurchase = Purchase::where('purchase_due_date', '!=', null)
+                    ->where('purchase_due_date', '<', Carbon::now())
+                    ->where('bagian', 'Toko')
+                    ->count();
+                $result = $countdueDatePurchase + $countlowStockProducts;
+                // dd($result);
+
+                $notifications = Cache::remember('low_product_notif_toko', $cacheDuration * 60, function () {
+                    // Fetch products where stock is less than or equal to the min_stock
+                    $lowStockProducts = ProductToko::where('stock', '<=', 'min_stock')->get();
+
+                    // Fetch purchases with due dates earlier than the current date and time
+                    $dueDatePurchase = Purchase::where('bagian', 'Toko')
+                        ->where('purchase_due_date', '!=', null)
+                        ->where('purchase_due_date', '<', Carbon::now())
+                        ->get();
+
+                    // Combine low stock products and due date purchases into a single array
+                    return array_merge($lowStockProducts->toArray(), $dueDatePurchase->toArray());
+                });
+            @endphp
+            <!-- User Profile Image with Notification Icon -->
+            <li class="nav-item mx-5">
+                <button type="button" class="btn btn-sm rounded position-relative" data-bs-toggle="modal"
+                    data-bs-target="#modalNotification">
+                    <i class="fa fa-bell fs-6"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ $result }}
+                        <span class="visually-hidden">unread messages</span>
+                    </span>
+                </button>
+            </li>
+
+            <!-- Modal -->
+            <div class="modal fade" id="modalNotification" tabindex="-1" aria-labelledby="modalNotificationLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Notifications</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-dark">
+                            <ul>
+                                @foreach ($notifications as $notification)
+                                    <li>
+                                        @if (isset($notification['product_name']))
+                                            <strong>{{ $notification['product_name'] }}</strong> is low on
+                                            stock. Current stock: {{ $notification['stock'] }}
+                                        @elseif(isset($notification['purchase_due_date']))
+                                            Batas Pembayaran Pembelian Barang Sudah Jatuh Tempo Pada:
+                                            {{ $notification['purchase_due_date'] }}
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endrole
+        @role('Admin_Gud')
+            @php
+                $cacheDuration = 10;
+
+                // Mengambil hasil dari cache atau menjalankan query jika cache tidak tersedia
+                // Menyimpan hasil query ke dalam cache
+                $countlowStockProducts = Product::where('stock', '<=', 'min_stock')->count();
+                $countdueDatePurchase = Purchase::where('bagian', 'Gudang')
+                    ->where('purchase_due_date', '!=', null)
+                    ->where('purchase_due_date', '<=', Carbon::now())
+                    ->count();
+                // dd($result);
+                $result = $countdueDatePurchase + $countlowStockProducts;
+
+                $notifications = Cache::remember('low_product_notif_gudang', $cacheDuration * 60, function () {
+                    // Fetch products where stock is less than or equal to the min_stock
+                    $lowStockProducts = Product::where('stock', '<=', 'min_stock')->get();
+
+                    // Fetch purchases with due dates earlier than the current date and time
+                    $dueDatePurchase = Purchase::where('bagian', 'Gudang')
+                        ->where('purchase_due_date', '!=', null)
+                        ->where('purchase_due_date', '<=', Carbon::now())
+                        ->get();
+
+                    // Combine low stock products and due date purchases into a single array
+                    return array_merge($lowStockProducts->toArray(), $dueDatePurchase->toArray());
+                });
+            @endphp
+            <!-- User Profile Image with Notification Icon -->
+            <li class="nav-item mx-5">
+                <button type="button" class="btn btn-sm rounded position-relative" data-bs-toggle="modal"
+                    data-bs-target="#modalNotification">
+                    <i class="fa fa-bell fs-6"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ $result }}
+                        <span class="visually-hidden">unread messages</span>
+                    </span>
+                </button>
+            </li>
+
+            <!-- Modal -->
+            <div class="modal fade" id="modalNotification" tabindex="-1" aria-labelledby="modalNotificationLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Notifications</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-dark">
+                            <ul>
+                                @foreach ($notifications as $notification)
+                                    <li>
+                                        @if (isset($notification['product_name']))
+                                            <strong>{{ $notification['product_name'] }}</strong> is low on
+                                            stock. Current stock: {{ $notification['stock'] }}
+                                        @elseif(isset($notification['purchase_due_date']))
+                                            Batas Pembayaran Pembelian Barang Sudah Jatuh Tempo Pada:
+                                            {{ $notification['purchase_due_date'] }}
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endrole
 
 
         <!-- User Dropdown-->
@@ -85,7 +278,7 @@
 
 
 <!-- Activate Bootstrap tooltips and popovers -->
-<script>
+{{-- <script>
     // Function to fetch low stock products and due date purchases
     function fetchNotifications() {
         return fetch('/getNotifications')
@@ -147,4 +340,4 @@
     document.getElementById('notificationsDropdown').addEventListener('click', () => {
         updateNotifications();
     });
-</script>
+</script> --}}
