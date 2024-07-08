@@ -146,14 +146,14 @@
                                                         Lunas</span>
                                                 </td>
 
-                                                <td>
+                                                {{-- <td>
                                                     <div class="d-flex">
                                                         <a href="{{ route('purchases.PO', $purchase->id) }}"
                                                             class="btn btn-outline-primary btn-sm mx-1"><i
                                                                 class="fa-solid fa-print"></i></a>
-                                                        {{-- <a href="{{ route('purchases.purchaseDetails', $purchase->id) }}"
+                                                        <a href="{{ route('purchases.purchaseDetails', $purchase->id) }}"
                                                             class="btn btn-outline-success btn-sm mx-1"><i
-                                                                class="fa-solid fa-eye"></i></a> --}}
+                                                                class="fa-solid fa-eye"></i></a>
                                                         <form
                                                             action="{{ route('purchases.deletePurchase', $purchase->id) }}"
                                                             method="POST">
@@ -165,7 +165,7 @@
                                                             </button>
                                                         </form>
                                                     </div>
-                                                </td>
+                                                </td> --}}
                                             @endif
                                         </tr>
                                     @endforeach

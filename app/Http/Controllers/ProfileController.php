@@ -10,6 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Gudang;
+use App\Models\ListToko;
 
 class ProfileController extends Controller
 {
@@ -18,8 +20,12 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
+        $toko = ListToko::where('user_id', auth()->user()->id)->first();
         return view('profile.edit', [
             'user' => $request->user(),
+            'gudang' => $gudang,
+            'toko' => $toko,
         ]);
     }
 
@@ -30,8 +36,8 @@ class ProfileController extends Controller
         $rules = [
             'name' => 'required|max:50',
             'photo' => 'image|file|max:1024',
-            'email' => 'required|email|max:50|unique:users,email,'.$user->id,
-            'username' => 'required|min:4|max:25|alpha_dash:ascii|unique:users,username,'.$user->id
+            'email' => 'required|email|max:50|unique:users,email,' . $user->id,
+            'username' => 'required|min:4|max:25|alpha_dash:ascii|unique:users,username,' . $user->id
         ];
 
         $validatedData = $request->validate($rules);
@@ -44,13 +50,13 @@ class ProfileController extends Controller
          * Handle upload image
          */
         if ($file = $request->file('photo')) {
-            $fileName = hexdec(uniqid()).'.'.$file->getClientOriginalExtension();
+            $fileName = hexdec(uniqid()) . '.' . $file->getClientOriginalExtension();
             $path = 'public/profile/';
 
             /**
              * Delete an image if exists.
              */
-            if($user->photo){
+            if ($user->photo) {
                 Storage::delete($path . $user->photo);
             }
 

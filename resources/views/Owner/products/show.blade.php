@@ -66,7 +66,7 @@
                         <div class="align-middle">
                             <label class="small mb-1">Barcode</label>
                             <div class="mt-1">
-                                <a href="{{ url('qrcode/' . $filename) }}" download="{{ $filename }}">
+                                <a href="{{ url('qrcode/' . $filename) }}" download>
                                     {!! $barcode !!}
                                 </a>
                             </div>

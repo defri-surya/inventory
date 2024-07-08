@@ -82,6 +82,38 @@
                                         <div class="input-group">
                                             <input type="text" id="search" class="form-control me-1" name="search"
                                                 placeholder="Search product" value="{{ request('search') }}">
+
+                                            <div class="input-group-append">
+                                                <!-- Modal button search scan Barcode -->
+                                                <button type="button" class="btn btn-sm rounded position-relative"
+                                                    data-bs-toggle="modal" data-bs-target="#modalScanBarcode">
+                                                    <i class="fa-solid fa-qrcode fs-1"></i>
+                                                </button>
+
+                                                <!-- Modal search scan Barcodel -->
+                                                <div class="modal fade" id="modalScanBarcode" tabindex="-1"
+                                                    aria-labelledby="modalScanBarcodeLabel" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="exampleModalLabel">
+                                                                    Search from barcode
+                                                                </h5>
+                                                                <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body text-dark">
+                                                                <div id="reader" width="600px"></div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary"
+                                                                    data-bs-dismiss="modal">Close</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <div class="input-group-append">
                                                 <button type="submit" class="input-group-text bg-primary"><i
                                                         class="fa-solid fa-magnifying-glass font-size-20 text-white"></i></button>
@@ -156,8 +188,8 @@
                                                         @method('PUT')
                                                         @csrf
                                                         <div class="form-check form-switch">
-                                                            <input class="form-check-input" name="status" type="checkbox"
-                                                                role="switch"
+                                                            <input class="form-check-input" name="status"
+                                                                type="checkbox" role="switch"
                                                                 id="flexSwitchCheckChecked-{{ $product->id }}" checked
                                                                 onchange="submitForm({{ $product->id }})">
                                                         </div>
@@ -216,5 +248,60 @@
         function submitForm(id) {
             document.getElementById('status-form-' + id).submit();
         }
+    </script>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script>
+        let html5QrcodeScanner;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`Code matched = ${decodedText}`, decodedResult);
+
+            // Cek apakah hasil scan adalah URL
+            try {
+                const url = new URL(decodedText);
+                window.location.href = url.href; // Mengarahkan ke URL
+            } catch (e) {
+                console.log(`Result is not a valid URL: ${decodedText}`);
+            }
+
+            // Hentikan scanner setelah mendapatkan hasil
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    console.log("Scanner stopped.");
+                }).catch(error => {
+                    console.error("Failed to clear scanner. Error:", error);
+                });
+            }
+        }
+
+        function onScanFailure(error) {
+            console.warn(`Code scan error = ${error}`);
+        }
+
+        document.getElementById('modalScanBarcode').addEventListener('show.bs.modal', function() {
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "reader", {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        }
+                    },
+                    false);
+            }
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        });
+
+        document.getElementById('modalScanBarcode').addEventListener('hidden.bs.modal', function() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    console.log("Scanner stopped.");
+                }).catch(error => {
+                    console.error("Failed to clear scanner. Error:", error);
+                });
+            }
+        });
     </script>
 @endsection
