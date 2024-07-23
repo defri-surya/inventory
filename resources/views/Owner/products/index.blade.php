@@ -134,6 +134,7 @@
                                         <th scope="col">No.</th>
                                         <th scope="col">Image</th>
                                         <th scope="col">@sortablelink('product_name', 'Product Name')</th>
+                                        <th scope="col">@sortablelink('product_code', 'Product Code')</th>
                                         <th scope="col">@sortablelink('category.name', 'category')</th>
                                         <th scope="col">@sortablelink('stock')</th>
                                         <th scope="col">@sortablelink('category.satuan', 'satuan')</th>
@@ -156,6 +157,7 @@
                                                 </div>
                                             </td>
                                             <td>{{ $product->product_name }}</td>
+                                            <td>{{ $product->product_code }}</td>
                                             <td>
                                                 @if ($product->category_id != null)
                                                     {{ $product->category->name }}

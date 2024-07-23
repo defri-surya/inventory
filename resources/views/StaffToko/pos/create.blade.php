@@ -31,7 +31,7 @@
                             <div class="row">
                                 <div class="col-lg-6 col-sm-6">
                                     <div class="logo">
-                                        <h1>Name Store</h1>
+                                        <h1>{{ $tokoid->name }}</h1>
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-sm-6">
@@ -62,10 +62,10 @@
                                 </div>
                                 <div class="col-sm-6 text-end mb-50">
                                     <h4 class="inv-title-1">Store</h4>
-                                    <p class="inv-from-1">Name Store</p>
-                                    <p class="inv-from-1">(+62) 123 123 123</p>
-                                    <p class="inv-from-1">email@example.com</p>
-                                    <p class="inv-from-2">Cirebon, Jawa Barat, Indonesia</p>
+                                    <p class="inv-from-1">{{ $tokoid->name }}</p>
+                                    <p class="inv-from-1">{{ $tokoid->phone }}</p>
+                                    <p class="inv-from-1">{{ $tokoid->email }}</p>
+                                    <p class="inv-from-2">{{ $tokoid->address }}</p>
                                 </div>
                             </div>
                         </div>

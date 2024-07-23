@@ -22,6 +22,8 @@ class Purchase extends Model
         'updated_by',
         'arrival_date',
         'bagian',
+        'toko_id',
+        'gudang_id',
         'no_faktur_pajak_pembelian',
     ];
 
@@ -46,7 +48,12 @@ class Purchase extends Model
 
     public function gudang()
     {
-        return $this->belongsTo(Gudang::class, 'supplier_id', 'id');
+        return $this->belongsTo(Gudang::class, 'gudang_id', 'id');
+    }
+
+    public function toko()
+    {
+        return $this->belongsTo(ListToko::class, 'toko_id', 'id');
     }
 
     public function user_created()

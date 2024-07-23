@@ -12,6 +12,7 @@ class ProductToko extends Model
 
     protected $fillable = [
         'product_name',
+        'toko_id',
         'category_id',
         'unit_id',
         'product_code',

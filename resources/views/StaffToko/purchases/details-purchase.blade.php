@@ -33,7 +33,7 @@
             <div class="col-xl-12">
                 <div class="card mb-4">
                     <div class="card-header">
-                        Information Supplier
+                        Information Gudang
                     </div>
                     <div class="card-body">
                         <!-- Form Row -->
@@ -102,9 +102,55 @@
                         @if ($purchase->purchase_status == 0)
                             <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
                         @elseif($purchase->purchase_status == 1)
-                            <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
+                            @if ($purchase->total_amount_paid != 0 || $purchase->total_amount_paid == 0)
+                                <form action="{{ route('purchasesToko.updatePurchasePaid') }}" method="POST">
+                                    @csrf
+                                    @method('put')
+                                    <input type="hidden" name="id" value="{{ $purchase->id }}">
+
+                                    <!-- Add input field for amount paid -->
+                                    <div class="form-group">
+                                        <label for="amount_paid">Amount Paid:</label>
+                                        <input type="number" name="amount_paid"
+                                            class="form-control form-control-solid my-4" min="0"
+                                            max="{{ $purchase->paid }}" required>
+                                    </div>
+
+                                    <!-- Submit button -->
+                                    <button type="submit" class="btn btn-warning my-2">
+                                        Pay Bills
+                                    </button>
+                                </form>
+
+                                <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
+                                <a class="btn btn-danger"
+                                    href="{{ route('purchasesToko.createReturn', $purchase->id) }}">Retur</a>
+                            @endif
                         @elseif($purchase->purchase_status == 2)
-                            <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
+                            @if ($purchase->total_amount_paid != 0 || $purchase->total_amount_paid == 0)
+                                <form action="{{ route('purchasesToko.updatePurchasePaid') }}" method="POST">
+                                    @csrf
+                                    @method('put')
+                                    <input type="hidden" name="id" value="{{ $purchase->id }}">
+
+                                    <!-- Add input field for amount paid -->
+                                    <div class="form-group">
+                                        <label for="amount_paid">Amount Paid:</label>
+                                        <input type="number" name="amount_paid"
+                                            class="form-control form-control-solid my-4" min="0"
+                                            max="{{ $purchase->paid }}" required>
+                                    </div>
+
+                                    <!-- Submit button -->
+                                    <button type="submit" class="btn btn-warning my-2">
+                                        Pay Bills
+                                    </button>
+                                </form>
+
+                                <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
+                                <a class="btn btn-danger"
+                                    href="{{ route('purchasesToko.createReturn', $purchase->id) }}">Retur</a>
+                            @endif
                         @elseif($purchase->purchase_status == 3)
                             <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
                         @elseif($purchase->purchase_status == 4)
@@ -119,28 +165,6 @@
                                 </button>
                                 <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
                             </form>
-                        @elseif($purchase->paid !== 0)
-                            <form action="{{ route('purchasesToko.updatePurchasePaid') }}" method="POST">
-                                @csrf
-                                @method('put')
-                                <input type="hidden" name="id" value="{{ $purchase->id }}">
-
-                                <!-- Add input field for amount paid -->
-                                <div class="form-group">
-                                    <label for="amount_paid">Amount Paid:</label>
-                                    <input type="number" name="amount_paid" class="form-control form-control-solid my-4"
-                                        min="0" max="{{ $purchase->paid }}" required>
-                                </div>
-
-                                <!-- Submit button -->
-                                <button type="submit" class="btn btn-warning my-2">
-                                    Pay Bills
-                                </button>
-                            </form>
-
-                            <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
-                            <a class="btn btn-danger"
-                                href="{{ route('purchasesToko.createReturn', $purchase->id) }}">Retur</a>
                         @else
                             <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
                             <a class="btn btn-danger"
@@ -185,13 +209,14 @@
                                                 <td scope="row">
                                                     <div style="max-height: 80px; max-width: 80px;">
                                                         <img class="img-fluid"
-                                                            src="{{ $item->product->product_image ? asset('storage/products/' . $item->product->product_image) : asset('assets/img/products/default.webp') }}">
+                                                            src="{{ $item->productToko->product_image ? asset('storage/products/' . $item->productToko->product_image) : asset('assets/img/products/default.webp') }}">
                                                     </div>
                                                 </td>
-                                                <td scope="row">{{ $item->product->product_name }}</td>
-                                                <td scope="row">{{ $item->product->product_code }}</td>
+                                                <td scope="row">{{ $item->productToko->product_name }}</td>
+                                                <td scope="row">{{ $item->productToko->product_code }}</td>
                                                 <td scope="row"><span
-                                                        class="btn btn-warning">{{ $item->product->stock }}</span></td>
+                                                        class="btn btn-warning">{{ $item->productToko->stock }}</span>
+                                                </td>
                                                 <td scope="row"><span
                                                         class="btn btn-success">{{ $item->quantity }}</span>
                                                 </td>

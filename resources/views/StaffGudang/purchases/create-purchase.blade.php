@@ -149,7 +149,7 @@
                                     </select>
                                 </div>
                                 <!-- Form Group (product) -->
-                                <div class="col-md-5">
+                                <div class="col-md-6">
                                     <label class="small my-1" for="product_id">Product <span
                                             class="text-danger">*</span></label>
                                     <select class="form-select form-control-solid select2" id="product_id"
@@ -157,10 +157,10 @@
                                         <option disabled>Select a product:</option>
                                     </select>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <label class="small my-1"> </label>
-                                    <button class="btn btn-primary form-control addEventMore" type="button">Add
-                                        Product</button>
+                                    <button class="btn btn-outline-primary form-control addEventMore mt-1" type="button">
+                                        <i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
 
@@ -190,6 +190,15 @@
                                             </td>
                                             <td>PPN 12%</td>
                                         </tr>
+                                        <tr>
+                                            <td colspan="3">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="total_amount_paid" value="0"
+                                                    id="total_amount_paid" class="form-control total_amount_paid">
+                                            </td>
+                                            <td>Uang Muka</td>
+                                        </tr>
                                         <tr class="table-primary">
                                             <td colspan="3"></td>
                                             <td>
@@ -199,18 +208,9 @@
                                             <td>
                                                 <button type="submit" class="btn btn-outline-success"
                                                     onclick="return confirm('Are you sure you want to purchase?')">
-                                                    Beli
+                                                    Checkout
                                                 </button>
                                             </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="3">
-                                            </td>
-                                            <td>
-                                                <input type="text" name="total_amount_paid" value="0"
-                                                    id="total_amount_paid" class="form-control total_amount_paid">
-                                            </td>
-                                            <td>Uang Muka</td>
                                         </tr>
                                     </tbody>
                                 </table>

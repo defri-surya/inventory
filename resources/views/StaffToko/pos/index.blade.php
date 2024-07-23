@@ -103,7 +103,7 @@
                                             <th scope="col">No.</th>
                                             <th scope="col">@sortablelink('product_name', 'Name')</th>
                                             <th scope="col">@sortablelink('stock')</th>
-                                            {{-- <th scope="col">@sortablelink('category.satuan', 'unit')</th> --}}
+                                            <th scope="col">@sortablelink('category.satuan', 'unit')</th>
                                             <th scope="col">Diskon</th>
                                             <th scope="col">@sortablelink('selling_price', 'Price')</th>
                                             <th scope="col">Action</th>
@@ -115,11 +115,12 @@
                                                 <th scope="row">
                                                     {{ $products->currentPage() * (request('row') ? request('row') : 10) - (request('row') ? request('row') : 10) + $loop->iteration }}
                                                 </th>
-                                                {{-- <td>
-                                        <div style="max-height: 80px; max-width: 80px;">
-                                            <img class="img-fluid"  src="{{ $product->product_image ? asset('storage/products/'.$product->product_image) : asset('assets/img/products/default.webp') }}">
-                                        </div>
-                                        </td> --}}
+                                                <td>
+                                                    <div style="max-height: 80px; max-width: 80px;">
+                                                        <img class="img-fluid"
+                                                            src="{{ $product->product_image ? asset('storage/products/' . $product->product_image) : asset('assets/img/products/default.webp') }}">
+                                                    </div>
+                                                </td>
                                                 <td>{{ $product->product_name }}</td>
                                                 <td>{{ $product->stock }}</td>
                                                 @if ($product->discount_percent == 0)

@@ -13,13 +13,13 @@
                         </h1>
                     </div>
                     <div class="col-auto my-4">
-                        <a href="{{ route('products-toko.import') }}" class="btn btn-success add-list my-1"><i
+                        {{-- <a href="{{ route('products-gudang.import') }}" class="btn btn-success add-list my-1"><i
                                 class="fa-solid fa-file-import me-3"></i>Import</a>
-                        <a href="{{ route('products-toko.export') }}" class="btn btn-warning add-list my-1"><i
+                        <a href="{{ route('products-gudang.export') }}" class="btn btn-warning add-list my-1"><i
                                 class="fa-solid fa-file-arrow-down me-3"></i>Export</a>
-                        <a href="{{ route('products-toko.create') }}" class="btn btn-primary add-list my-1"><i
-                                class="fa-solid fa-plus me-3"></i>Add</a>
-                        <a href="{{ route('products-toko.index') }}" class="btn btn-danger add-list my-1"><i
+                        <a href="{{ route('products-gudang.create') }}" class="btn btn-primary add-list my-1"><i
+                                class="fa-solid fa-plus me-3"></i>Add</a> --}}
+                        <a href="{{ route('stockToko.index') }}" class="btn btn-danger add-list my-1"><i
                                 class="fa-solid fa-trash me-3"></i>Clear Search</a>
                     </div>
                 </div>
@@ -32,33 +32,190 @@
                 </nav>
             </div>
         </div>
-
-        <!-- BEGIN: Alert -->
-        <div class="container-xl px-4 mt-n4">
-            @if (session()->has('success'))
-                <div class="alert alert-success alert-icon" role="alert">
-                    <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
-                    <div class="alert-icon-aside">
-                        <i class="far fa-flag"></i>
-                    </div>
-                    <div class="alert-icon-content">
-                        {{ session('success') }}
-                    </div>
-                </div>
-            @endif
-        </div>
-        <!-- END: Alert -->
     </header>
     <!-- END: Header -->
 
-
-    <!-- BEGIN: Main Page Content -->
     <div class="container px-2 mt-n10">
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row mx-n4">
                     <div class="col-lg-12 card-header mt-n4">
-                        <form action="{{ route('products-toko.index') }}" method="GET">
+                        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                            @foreach ($groupedProducts as $tokoId => $productGroup)
+                                @php
+                                    $toko = App\Models\ListToko::where('id', $tokoId)->first();
+                                @endphp
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link {{ $loop->first ? 'active' : '' }}"
+                                        id="pills-toko{{ $tokoId }}-tab" data-bs-toggle="pill"
+                                        data-bs-target="#pills-toko{{ $tokoId }}" type="button" role="tab"
+                                        aria-controls="pills-toko{{ $tokoId }}"
+                                        aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                        {{ $toko->name }}
+                                    </button>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <div class="tab-content" id="pills-tabContent">
+                            @foreach ($groupedProducts as $tokoId => $productGroup)
+                                <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                    id="pills-toko{{ $tokoId }}" role="tabpanel"
+                                    aria-labelledby="pills-toko{{ $tokoId }}-tab">
+                                    <div class="col-lg-12 card-header mt-4">
+                                        <form action="{{ route('stockToko.index') }}" method="GET">
+                                            <div class="d-flex flex-wrap align-items-center justify-content-between">
+                                                <div class="form-group row align-items-center">
+                                                    <label for="row" class="col-auto">Row:</label>
+                                                    <div class="col-auto">
+                                                        <select class="form-control" name="row">
+                                                            <option value="10"
+                                                                @if (request('row') == '10') selected="selected" @endif>
+                                                                10
+                                                            </option>
+                                                            <option value="25"
+                                                                @if (request('row') == '25') selected="selected" @endif>
+                                                                25
+                                                            </option>
+                                                            <option value="50"
+                                                                @if (request('row') == '50') selected="selected" @endif>
+                                                                50
+                                                            </option>
+                                                            <option value="100"
+                                                                @if (request('row') == '100') selected="selected" @endif>
+                                                                100
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row align-items-center justify-content-between">
+                                                    <label class="control-label col-sm-3" for="search">Search:</label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group">
+                                                            <input type="text" id="search" class="form-control me-1"
+                                                                name="search" placeholder="Search product"
+                                                                value="{{ request('search') }}">
+
+                                                            <div class="input-group-append">
+                                                                <!-- Modal button search scan Barcode -->
+                                                                <button type="button"
+                                                                    class="btn btn-sm rounded position-relative"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#modalScanBarcode">
+                                                                    <i class="fa-solid fa-qrcode fs-1"></i>
+                                                                </button>
+
+                                                                <!-- Modal search scan Barcodel -->
+                                                                <div class="modal fade" id="modalScanBarcode" tabindex="-1"
+                                                                    aria-labelledby="modalScanBarcodeLabel"
+                                                                    aria-hidden="true">
+                                                                    <div class="modal-dialog modal-dialog-centered">
+                                                                        <div class="modal-content">
+                                                                            <div class="modal-header">
+                                                                                <h5 class="modal-title"
+                                                                                    id="exampleModalLabel">
+                                                                                    Search from barcode
+                                                                                </h5>
+                                                                                <button type="button" class="btn-close"
+                                                                                    data-bs-dismiss="modal"
+                                                                                    aria-label="Close"></button>
+                                                                            </div>
+                                                                            <div class="modal-body text-dark">
+                                                                                <div id="reader" width="600px"></div>
+                                                                            </div>
+                                                                            <div class="modal-footer">
+                                                                                <button type="button"
+                                                                                    class="btn btn-secondary"
+                                                                                    data-bs-dismiss="modal">Close</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="input-group-append">
+                                                                <button type="submit"
+                                                                    class="input-group-text bg-primary"><i
+                                                                        class="fa-solid fa-magnifying-glass font-size-20 text-white"></i></button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <hr>
+
+                                    <div class="col-lg-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped align-middle">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th scope="col">No.</th>
+                                                        <th scope="col">Image</th>
+                                                        <th scope="col">@sortablelink('product_name', 'Product Name')</th>
+                                                        <th scope="col">@sortablelink('product_code', 'Product Code')</th>
+                                                        <th scope="col">@sortablelink('category.name', 'category')</th>
+                                                        <th scope="col">@sortablelink('stock')</th>
+                                                        <th scope="col">@sortablelink('selling_price', 'Price')</th>
+                                                        <th scope="col">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($productGroup as $product)
+                                                        <tr>
+                                                            <th scope="row">
+                                                                {{ $paginatedProducts->currentPage() * (request('row') ? request('row') : 10) - (request('row') ? request('row') : 10) + $loop->iteration }}
+                                                            </th>
+                                                            <td>
+                                                                <div style="max-height: 80px; max-width: 80px;">
+                                                                    <img class="img-fluid"
+                                                                        src="{{ $product->product_image ? asset('storage/products/' . $product->product_image) : asset('assets/img/products/default.webp') }}">
+                                                                </div>
+                                                            </td>
+                                                            <td>{{ $product->product_name }}</td>
+                                                            <td>{{ $product->product_code }}</td>
+                                                            <td>
+                                                                @if ($product->category_id != null)
+                                                                    {{ $product->category->name }}
+                                                                @else
+                                                                    Belum Ditentukan!
+                                                                @endif
+                                                            </td>
+                                                            <td>{{ $product->stock }}</td>
+                                                            <td>Rp. {{ number_format($product->selling_price) }}</td>
+                                                            <td>
+                                                                <div class="d-flex">
+                                                                    <a href="{{ route('stockToko.show', $product->product_code) }}"
+                                                                        class="btn btn-outline-success btn-sm mx-1"><i
+                                                                            class="fa-solid fa-eye"></i></a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {{-- {{ $paginatedProducts->links() }} --}}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BEGIN: Main Page Content -->
+    {{-- <div class="container px-2 mt-n10">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row mx-n4">
+                    <div class="col-lg-12 card-header mt-n4">
+                        <form action="{{ route('products-gudang.index') }}" method="GET">
                             <div class="d-flex flex-wrap align-items-center justify-content-between">
                                 <div class="form-group row align-items-center">
                                     <label for="row" class="col-auto">Row:</label>
@@ -185,7 +342,7 @@
                                             <td>
                                                 @if ($product->status_id == 1)
                                                     <form id="status-form-{{ $product->id }}"
-                                                        action="{{ route('change-status-product-toko', $product->id) }}"
+                                                        action="{{ route('change-status-product-gudang', $product->id) }}"
                                                         method="POST">
                                                         @method('PUT')
                                                         @csrf
@@ -198,7 +355,7 @@
                                                     </form>
                                                 @else
                                                     <form id="status-form-{{ $product->id }}"
-                                                        action="{{ route('change-status-product-toko', $product->id) }}"
+                                                        action="{{ route('change-status-product-gudang', $product->id) }}"
                                                         method="POST">
                                                         @method('PUT')
                                                         @csrf
@@ -213,78 +370,13 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex">
-                                                    <!-- Add to cart Sales -->
-                                                    <form action="{{ route('posToko.addCartItem', $product->id) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        <input type="hidden" name="id"
-                                                            value="{{ $product->id }}">
-                                                        <input type="hidden" name="name"
-                                                            value="{{ $product->product_name }}">
-
-                                                        @if ($product->discount_percent == 0 || $product->discount_price == 0)
-                                                            <input type="hidden" name="price"
-                                                                value="{{ $product->selling_price }}">
-                                                        @elseif ($product->discount_percent != 0)
-                                                            @php
-                                                                $discount =
-                                                                    ($product->selling_price *
-                                                                        $product->discount_percent) /
-                                                                    100;
-                                                                $price = $product->selling_price - $discount;
-                                                            @endphp
-                                                            <input type="hidden" name="price"
-                                                                value="{{ $price }}">
-                                                        @elseif ($product->discount_price != 0)
-                                                            @php
-                                                                $discount =
-                                                                    $product->selling_price - $product->discount_price;
-                                                            @endphp
-                                                            <input type="hidden" name="price"
-                                                                value="{{ $discount }}">
-                                                        @endif
-
-                                                        <button type="submit"
-                                                            class="btn btn-outline-primary btn-sm mx-1">
-                                                            <i class="fa-solid fa-cart-plus"></i>
-                                                        </button>
-                                                    </form>
-
-                                                    <!-- Add to cart Purchase -->
-                                                    <form action="{{ route('purchasesToko.addCartItem') }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        @php
-                                                            $tokoid = App\Models\ListToko::where(
-                                                                'user_id',
-                                                                auth()->user()->id,
-                                                            )->first();
-                                                        @endphp
-                                                        <input type="hidden" name="product_id"
-                                                            value="{{ $product->id }}">
-                                                        <input type="hidden" name="toko_id"
-                                                            value="{{ $tokoid->id }}">
-
-                                                        <button type="submit"
-                                                            class="btn btn-outline-primary btn-sm mx-1">
-                                                            <i class="fa-solid fa-plus"></i>
-                                                        </button>
-                                                    </form>
-
-                                                    <!-- Show Detail -->
-                                                    <a href="{{ route('products-toko.show', $product->product_name) }}"
-                                                        class="btn btn-outline-success btn-sm mx-1">
-                                                        <i class="fa-solid fa-eye"></i>
-                                                    </a>
-
-                                                    <!-- Edit -->
-                                                    <a href="{{ route('products-toko.edit', $product->id) }}"
-                                                        class="btn btn-outline-primary btn-sm mx-1">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-
-                                                    <!-- Delete -->
-                                                    <form action="{{ route('products-toko.destroy', $product->id) }}"
+                                                    <a href="{{ route('products-gudang.show', $product->product_name) }}"
+                                                        class="btn btn-outline-success btn-sm mx-1"><i
+                                                            class="fa-solid fa-eye"></i></a>
+                                                    <a href="{{ route('products-gudang.edit', $product->id) }}"
+                                                        class="btn btn-outline-primary btn-sm mx-1"><i
+                                                            class="fas fa-edit"></i></a>
+                                                    <form action="{{ route('products-gudang.destroy', $product->id) }}"
                                                         method="POST">
                                                         @method('delete')
                                                         @csrf
@@ -306,7 +398,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
     <!-- END: Main Page Content -->
 @endsection
 

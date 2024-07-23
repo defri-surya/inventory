@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Redirect;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use App\Http\Controllers\Controller;
+use App\Models\ListToko;
+use App\Models\ProductToko;
 
 class OrderTokoController extends Controller
 {
@@ -27,8 +29,9 @@ class OrderTokoController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $orders = Order::where('order_status', 'pending')->filter(request(['search']))
-            ->where('bagian', '=', 'Toko')
+            ->where('toko_id', $tokoid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -49,8 +52,9 @@ class OrderTokoController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $orders = Order::where('order_status', 'complete')->filter(request(['search']))
-            ->where('bagian', '=', 'Toko')
+            ->where('toko_id', $tokoid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -68,8 +72,9 @@ class OrderTokoController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $orders = Order::where('due', '>', '0')->filter(request(['search']))
-            ->where('bagian', '=', 'Toko')
+            ->where('toko_id', $tokoid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -85,8 +90,10 @@ class OrderTokoController extends Controller
     public function dueOrderDetails(String $order_id)
     {
         $order = Order::where('id', $order_id)->first();
-        $orderDetails = OrderDetails::with('product')
-            ->where('bagian', '=', 'Toko')
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
+
+        $orderDetails = OrderDetails::with('productToko')
+            ->where('toko_id', $tokoid->id)
             ->where('order_id', $order_id)
             ->orderBy('id')
             ->get();
@@ -104,7 +111,7 @@ class OrderTokoController extends Controller
     public function orderDetails(String $order_id)
     {
         $order = Order::where('id', $order_id)->first();
-        $orderDetails = OrderDetails::with('product')
+        $orderDetails = OrderDetails::with('productToko')
             ->where('order_id', $order_id)
             ->orderBy('id')
             ->get();
@@ -138,10 +145,12 @@ class OrderTokoController extends Controller
         ]);
 
         $validatedData = $request->validate($rules);
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
 
         $validatedData['order_date'] = Carbon::now()->format('Y-m-d');
         $validatedData['order_status'] = 'pending';
         $validatedData['bagian'] = 'Toko';
+        $validatedData['toko_id'] = $tokoid->id;
         $validatedData['total_products'] = Cart::count();
         //        $validatedData['fee'] = Cart::count() * $validatedData['fee'];
         $validatedData['sub_total'] = str_replace(',', '', Cart::subtotal());
@@ -165,6 +174,7 @@ class OrderTokoController extends Controller
             $oDetails['unitcost'] = $content->price;
             $oDetails['total'] = $content->subtotal;
             $oDetails['bagian'] = 'Toko';
+            $oDetails['toko_id'] = $tokoid->id;
             $oDetails['created_at'] = Carbon::now();
 
             OrderDetails::insert($oDetails);
@@ -187,7 +197,7 @@ class OrderTokoController extends Controller
         $products = OrderDetails::where('order_id', $order_id)->get();
 
         foreach ($products as $product) {
-            Product::where('id', $product->product_id)
+            ProductToko::where('id', $product->product_id)
                 ->update(['stock' => DB::raw('stock-' . $product->quantity)]);
         }
 
@@ -229,7 +239,7 @@ class OrderTokoController extends Controller
     public function downloadInvoice(Int $order_id)
     {
         $order = Order::with('customer')->where('id', $order_id)->first();
-        $orderDetails = OrderDetails::with('product')
+        $orderDetails = OrderDetails::with('productToko')
             ->where('order_id', $order_id)
             ->orderBy('id', 'DESC')
             ->get();
@@ -287,7 +297,7 @@ class OrderTokoController extends Controller
     public function deliveryOrder(Int $order_id)
     {
         $order = DeliveryOrder::with('order.customer')->where('id_order', $order_id)->first();
-        $orderDetails = OrderDetails::with('product')
+        $orderDetails = OrderDetails::with('productToko')
             ->where('order_id', $order_id)
             ->orderBy('id', 'DESC')
             ->get();

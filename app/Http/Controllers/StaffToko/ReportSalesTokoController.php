@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\StaffToko;
 
 use App\Http\Controllers\Controller;
+use App\Models\ListToko;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Writer\Xls;
@@ -20,8 +21,9 @@ class ReportSalesTokoController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $orders = Order::filter(request(['search']))
-            ->where('bagian', '=', 'Toko')
+            ->where('toko_id', $tokoid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());

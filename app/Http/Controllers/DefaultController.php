@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Gudang;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,8 @@ class DefaultController extends Controller
     public function GetProducts(Request $request)
     {
         $category_id = $request->category_id;
-        $allProducts = Product::with('supplier')->where('category_id', $category_id)->get();
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
+        $allProducts = Product::with('supplier')->where('gudang_id', $gudang->id)->where('category_id', $category_id)->get();
 
         $productData = [];
 

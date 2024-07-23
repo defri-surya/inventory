@@ -23,6 +23,8 @@ class Order extends Model
         'pay',
         'due',
         'bagian',
+        'toko_id',
+        'gudang_id',
     ];
 
     public $sortable = [

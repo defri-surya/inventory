@@ -41,12 +41,12 @@
                             <!-- Form Group (supplier name) -->
                             <div class="col-md-6">
                                 <label class="small mb-1">Name</label>
-                                <div class="form-control form-control-solid">{{ $orders->gudang->name }}</div>
+                                <div class="form-control form-control-solid">{{ $orders->toko->name }}</div>
                             </div>
                             <!-- Form Group (supplier email) -->
                             <div class="col-md-6">
                                 <label class="small mb-1">Email</label>
-                                <div class="form-control form-control-solid">{{ $orders->gudang->email }}</div>
+                                <div class="form-control form-control-solid">{{ $orders->toko->email }}</div>
                             </div>
                         </div>
                         <!-- Form Row -->
@@ -54,7 +54,7 @@
                             <!-- Form Group (supplier phone number) -->
                             <div class="col-md-6">
                                 <label class="small mb-1">Phone</label>
-                                <div class="form-control form-control-solid">{{ $orders->gudang->phone }}</div>
+                                <div class="form-control form-control-solid">{{ $orders->toko->phone }}</div>
                             </div>
                             <!-- Form Group (order date) -->
                             <div class="col-md-6">
@@ -96,7 +96,7 @@
                         <!-- Form Group (address) -->
                         <div class="mb-3">
                             <label class="small mb-1">Address</label>
-                            <div class="form-control form-control-solid">{{ $orders->gudang->address }}</div>
+                            <div class="form-control form-control-solid">{{ $orders->toko->address }}</div>
                         </div>
 
                         @if ($orders->purchase_status == 0)

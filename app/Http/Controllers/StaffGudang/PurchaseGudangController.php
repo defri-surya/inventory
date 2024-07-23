@@ -17,6 +17,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
+use App\Models\Gudang;
 
 class PurchaseGudangController extends Controller
 {
@@ -31,8 +32,9 @@ class PurchaseGudangController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['supplier'])->filter(request(['search']))
-            ->where('bagian', 'Gudang')
+            ->where('gudang_id', $gudangid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -53,9 +55,10 @@ class PurchaseGudangController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['supplier'])
             ->where('purchase_status', 1) // 1 = approved
-            ->where('bagian', 'Gudang')
+            ->where('gudang_id', $gudangid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -185,7 +188,7 @@ class PurchaseGudangController extends Controller
         ]);
 
         $validatedData = $request->validate($rules);
-
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
 
         //dd($purchase_no);
 
@@ -194,6 +197,7 @@ class PurchaseGudangController extends Controller
         $validatedData['created_by'] = auth()->user()->id;
         $validatedData['created_at'] = Carbon::now();
         $validatedData['bagian'] = 'Gudang';
+        $validatedData['gudang_id'] = $gudang->id;
         // dd($validatedData);
 
         $purchase_id = Purchase::insertGetId($validatedData);
@@ -209,6 +213,7 @@ class PurchaseGudangController extends Controller
             $pDetails['total'] = $request->total[$i];
             $pDetails['created_at'] = Carbon::now();
             $pDetails['bagian'] = 'Gudang';
+            $pDetails['gudang_id'] = $gudang->id;
 
             PurchaseDetails::insert($pDetails);
         }
@@ -355,9 +360,10 @@ class PurchaseGudangController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['supplier'])->filter(request(['search']))
             ->where('purchase_date', Carbon::now()->format('Y-m-d')) // 1 = approved
-            ->where('bagian', 'Gudang') // Additional condition for approved purchases
+            ->where('gudang_id', $gudang->id) // Additional condition for approved purchases
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -375,10 +381,11 @@ class PurchaseGudangController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['supplier'])->filter(request(['search']))
             ->whereDate('purchase_due_date', '<', Carbon::now()->format('Y-m-d')) // Filter purchases after the due date from now
             ->where('purchase_status', 1) // Additional condition for approved purchases
-            ->where('bagian', 'Gudang') // Additional condition for approved purchases
+            ->where('gudang_id', $gudang->id) // Additional condition for approved purchases
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -417,12 +424,13 @@ class PurchaseGudangController extends Controller
         //     ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
         //     ->get();
 
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
         $purchases = DB::table('purchase_details')
             ->join('products', 'purchase_details.product_id', '=', 'products.id')
             ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
             ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
             ->whereBetween('purchases.purchase_date', [$sDate, $eDate])
-            ->where('bagian', 'Gudang') // Additional condition for approved purchases
+            ->where('gudang_id', $gudang->id) // Additional condition for approved purchases
             // ->where('purchases.purchase_status', '1')
             ->select('purchases.purchase_no', 'purchases.purchase_date', 'purchases.purchase_due_date', 'purchases.supplier_id', 'products.product_code', 'products.product_name', 'purchase_details.quantity', 'purchase_details.unitcost', 'purchase_details.total', 'suppliers.name')
             ->get();
@@ -496,12 +504,13 @@ class PurchaseGudangController extends Controller
         //     ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
         //     ->get();
 
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
         $purchasesDaily = DB::table('purchase_details')
             ->join('products', 'purchase_details.product_id', '=', 'products.id')
             ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
             ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
             ->where('purchases.purchase_date', [$sDate])
-            ->where('bagian', 'Gudang') // Additional condition for approved purchases
+            ->where('gudang_id', $gudang->id) // Additional condition for approved purchases
             // ->where('purchases.purchase_status', '1')
             ->select('purchases.purchase_no', 'purchases.purchase_date', 'purchases.purchase_due_date', 'purchases.supplier_id', 'products.product_code', 'products.product_name', 'purchase_details.quantity', 'purchase_details.unitcost', 'purchase_details.total', 'suppliers.name')
             ->get();
@@ -576,13 +585,14 @@ class PurchaseGudangController extends Controller
         //     ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
         //     ->get();
 
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
         $purchasesDue = DB::table('purchase_details')
             ->join('products', 'purchase_details.product_id', '=', 'products.id')
             ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
             ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
             ->where('purchases.purchase_date', '<', Carbon::now()->format('Y-m-d'))
             ->where('purchases.purchase_status', '1')
-            ->where('bagian', 'Gudang') // Additional condition for approved purchases
+            ->where('gudang_id', $gudang->id) // Additional condition for approved purchases
             ->select('purchases.purchase_no', 'purchases.purchase_date', 'purchases.purchase_due_date', 'purchases.supplier_id', 'products.product_code', 'products.product_name', 'purchase_details.quantity', 'purchase_details.unitcost', 'purchase_details.total', 'suppliers.name')
             ->get();
         // dd($purchasesDue);

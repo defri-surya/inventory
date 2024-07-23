@@ -99,4 +99,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales-gudang-get/report/export', [ReportGudangSalesController::class, 'getSalesReport'])->name('salesGudang.getSalesReport');
     Route::post('/sales-gudang/export', [ReportGudangSalesController::class, 'ExportSalesReport'])->name('salesGudang.ExportSalesReport');
     // End
+
+    // Route Stock
+    Route::get('/stock-toko', [ProductGudangController::class, 'stockToko'])->name('stockToko.index');
+    Route::get('/stock-toko/detail/{id}', [ProductGudangController::class, 'stockTokoDetail'])->name('stockToko.show');
+    // End
 });

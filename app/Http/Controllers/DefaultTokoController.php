@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ListToko;
 use App\Models\ProductToko;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,8 @@ class DefaultTokoController extends Controller
     public function GetProductsToko(Request $request)
     {
         $category_id = $request->category_id;
-        $allProducts = ProductToko::with('supplier')->where('category_id', $category_id)->get();
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
+        $allProducts = ProductToko::with('supplier')->where('toko_id', $tokoid->id)->where('category_id', $category_id)->get();
 
         $productData = [];
 

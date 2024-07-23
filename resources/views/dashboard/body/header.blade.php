@@ -24,6 +24,8 @@
             use Illuminate\Support\Facades\Cache;
             use App\Models\Product;
             use App\Models\ProductToko;
+            use App\Models\ListToko;
+            use App\Models\Gudang;
             use App\Models\Purchase;
         @endphp
         @role('Owner')
@@ -101,20 +103,26 @@
 
                 // Mengambil hasil dari cache atau menjalankan query jika cache tidak tersedia
                 // Menyimpan hasil query ke dalam cache
-                $countlowStockProducts = ProductToko::where('stock', '<=', 'min_stock')->count();
+                $tokoid = ListToko::where('user_id', Auth::user()->id)->first();
+                $countlowStockProducts = ProductToko::where('stock', '<=', 'min_stock')
+                    ->where('toko_id', $tokoid->id)
+                    ->count();
                 $countdueDatePurchase = Purchase::where('purchase_due_date', '!=', null)
+                    ->where('toko_id', $tokoid->id)
                     ->where('purchase_due_date', '<', Carbon::now())
-                    ->where('bagian', 'Toko')
                     ->count();
                 $result = $countdueDatePurchase + $countlowStockProducts;
                 // dd($result);
 
                 $notifications = Cache::remember('low_product_notif_toko', $cacheDuration * 60, function () {
                     // Fetch products where stock is less than or equal to the min_stock
-                    $lowStockProducts = ProductToko::where('stock', '<=', 'min_stock')->get();
+                    $toko_id = ListToko::where('user_id', Auth::user()->id)->first();
+                    $lowStockProducts = ProductToko::where('stock', '<=', 'min_stock')
+                        ->where('toko_id', $toko_id->id)
+                        ->get();
 
                     // Fetch purchases with due dates earlier than the current date and time
-                    $dueDatePurchase = Purchase::where('bagian', 'Toko')
+                    $dueDatePurchase = Purchase::where('toko_id', $toko_id->id)
                         ->where('purchase_due_date', '!=', null)
                         ->where('purchase_due_date', '<', Carbon::now())
                         ->get();
@@ -122,6 +130,7 @@
                     // Combine low stock products and due date purchases into a single array
                     return array_merge($lowStockProducts->toArray(), $dueDatePurchase->toArray());
                 });
+                // dd($notifications);
             @endphp
             <!-- User Profile Image with Notification Icon -->
             <li class="nav-item mx-5">
@@ -172,8 +181,11 @@
 
                 // Mengambil hasil dari cache atau menjalankan query jika cache tidak tersedia
                 // Menyimpan hasil query ke dalam cache
-                $countlowStockProducts = Product::where('stock', '<=', 'min_stock')->count();
-                $countdueDatePurchase = Purchase::where('bagian', 'Gudang')
+                $gudangid = Gudang::where('user_id', Auth::user()->id)->first();
+                $countlowStockProducts = Product::where('stock', '<=', 'min_stock')
+                    ->where('gudang_id', $gudangid->id)
+                    ->count();
+                $countdueDatePurchase = Purchase::where('gudang_id', $gudangid->id)
                     ->where('purchase_due_date', '!=', null)
                     ->where('purchase_due_date', '<=', Carbon::now())
                     ->count();
@@ -181,11 +193,14 @@
                 $result = $countdueDatePurchase + $countlowStockProducts;
 
                 $notifications = Cache::remember('low_product_notif_gudang', $cacheDuration * 60, function () {
+                    $gudang_id = Gudang::where('user_id', Auth::user()->id)->first();
                     // Fetch products where stock is less than or equal to the min_stock
-                    $lowStockProducts = Product::where('stock', '<=', 'min_stock')->get();
+                    $lowStockProducts = Product::where('stock', '<=', 'min_stock')
+                        ->where('gudang_id', $gudang_id->id)
+                        ->get();
 
                     // Fetch purchases with due dates earlier than the current date and time
-                    $dueDatePurchase = Purchase::where('bagian', 'Gudang')
+                    $dueDatePurchase = Purchase::where('gudang_id', $gudang_id->id)
                         ->where('purchase_due_date', '!=', null)
                         ->where('purchase_due_date', '<=', Carbon::now())
                         ->get();

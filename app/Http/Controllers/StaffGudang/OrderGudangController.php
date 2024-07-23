@@ -32,8 +32,9 @@ class OrderGudangController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
-        $orders = Order::where('order_status', 'pending')->filter(request(['search']))
-            ->where('bagian', 'Gudang')
+        $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
+        $orders = Order::with('toko')->where('order_status', 'pending')->filter(request(['search']))
+            ->where('gudang_id', $gudangid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -54,8 +55,9 @@ class OrderGudangController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
-        $orders = Order::where('order_status', 'complete')->filter(request(['search']))
-            ->where('bagian', 'Gudang')
+        $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
+        $orders = Order::with('toko')->where('order_status', 'complete')->filter(request(['search']))
+            ->where('gudang_id', $gudangid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -73,8 +75,9 @@ class OrderGudangController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
         $orders = Order::where('due', '>', '0')->filter(request(['search']))
-            ->where('bagian', 'Gudang')
+            ->where('supplier_id', $gudangid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -90,8 +93,10 @@ class OrderGudangController extends Controller
     public function dueOrderDetails(String $order_id)
     {
         $order = Order::where('id', $order_id)->first();
+        $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
+
         $orderDetails = OrderDetails::with('product')
-            ->where('bagian', 'Gudang')
+            ->where('supplier', $gudangid->id)
             ->where('order_id', $order_id)
             ->orderBy('id')
             ->get();
@@ -113,6 +118,7 @@ class OrderGudangController extends Controller
             ->where('order_id', $order_id)
             ->orderBy('id')
             ->get();
+
         $deliveryOrder = DeliveryOrder::select('id_order')->where('id_order', $order_id)->first();
         // dd($deliveryOrder);
 
@@ -325,8 +331,8 @@ class OrderGudangController extends Controller
 
         $gudang = Gudang::where('user_id', auth()->user()->id)->first();
 
-        $orders = Purchase::with('supplier')->filter(request(['search']))
-            ->where('supplier_id', $gudang->id)
+        $orders = Purchase::with('supplier', 'toko')->filter(request(['search']))
+            ->where('gudang_id', $gudang->id)
             ->where('purchase_status', '0')
             ->sortable()
             ->paginate($row)
@@ -339,11 +345,12 @@ class OrderGudangController extends Controller
 
     public function requestOrderDetails(String $order_id)
     {
-        $orders = Purchase::with('gudang')->where('id', $order_id)->first();
+        $orders = Purchase::with('toko')->where('id', $order_id)->first();
         $orderDetails = PurchaseDetails::with('product')
             ->where('purchase_id', $order_id)
             ->orderBy('id', 'DESC')
             ->get();
+        // dd($orderDetails);
 
         return view('StaffGudang.orders.requestorder.details-request', [
             'orders' => $orders,
@@ -353,7 +360,7 @@ class OrderGudangController extends Controller
 
     public function requestOrderProcess(Request $request, String $order_id)
     {
-        $order = Purchase::with('supplier')->where('id', $order_id)->first();
+        $order = Purchase::with('toko')->where('id', $order_id)->first();
         // dd($order);
 
         $order->update([
@@ -366,7 +373,7 @@ class OrderGudangController extends Controller
     public function processOrder(String $order_id)
     {
         $orders = Purchase::with('supplier')->where('id', $order_id)->first();
-        $toko = ListToko::where('id', $orders->supplier_id)->first();
+        $toko = ListToko::where('id', $orders->toko_id)->first();
         $orderDetails = PurchaseDetails::with('product')
             ->where('purchase_id', $order_id)
             ->get();
@@ -432,7 +439,7 @@ class OrderGudangController extends Controller
 
         // dd($order_id);
         $orders = Purchase::with('supplier')->where('id', $order_id)->first();
-        $customer = ListToko::where('id', $orders->supplier_id)->first();
+        $customer = ListToko::where('id', $orders->toko_id)->first();
         $sales = ListToko::where('id', $agen_id)->first();
 
         $orderDetails = PurchaseDetails::with('product')
@@ -479,10 +486,12 @@ class OrderGudangController extends Controller
         ]);
 
         $validatedData = $request->validate($rules);
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
 
         $validatedData['order_date'] = Carbon::now()->format('Y-m-d');
         $validatedData['order_status'] = 'pending';
         $validatedData['bagian'] = 'Gudang';
+        $validatedData['gudang_id'] = $gudang->id;
         $validatedData['total_products'] = $validatedData['total_products'];
         //        $validatedData['fee'] = Cart::count() * $validatedData['fee'];
         $validatedData['sub_total'] = $validatedData['sub_total'];
@@ -510,6 +519,7 @@ class OrderGudangController extends Controller
                 'unitcost' => $content->unitcost,
                 'total' => $content->total,
                 'bagian' => 'Gudang',
+                'gudang_id' => $gudang->id,
                 'created_at' => Carbon::now(),
             ];
         }

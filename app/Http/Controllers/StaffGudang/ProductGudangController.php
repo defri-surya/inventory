@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\File;
 use App\Models\Gudang;
 use App\Models\ProductToko;
 use App\Models\Supplier;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class ProductGudangController extends Controller
 {
@@ -32,8 +34,9 @@ class ProductGudangController extends Controller
         if ($row < 1 || $row > 100) {
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
-
+        $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
         $products = Product::with(['category'])
+            ->where('gudang_id', $gudangid->id)
             ->filter(request(['search']))
             ->sortable()
             ->paginate($row)
@@ -247,7 +250,7 @@ class ProductGudangController extends Controller
         }
         Product::where('id', $id)->update($validatedData);
 
-        $productToko = ProductToko::where('gudang_id', $profileGudang->id)->first();
+        $productToko = Product::where('gudang_id', $profileGudang->id)->first();
         $productToko->buying_price = $validatedData['selling_price'];
         // dd($productToko);
         $productToko->update();
@@ -390,4 +393,97 @@ class ProductGudangController extends Controller
         // Redirect kembali dengan pesan sukses
         return redirect()->route('products-gudang.index')->with('success', 'Status product telah diperbarui!');
     }
+
+    // Stock Toko
+    public function stockToko()
+    {
+        $row = (int) request('row', 10);
+
+        if ($row < 1 || $row > 100) {
+            abort(400, 'The per-page parameter must be an integer between 1 and 100.');
+        }
+        $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
+        $allProducts = collect();
+        ProductToko::with(['category'])
+            ->where('gudang_id', $gudangid->id)
+            ->filter(request(['search']))
+            ->sortable()
+            ->chunk(100, function ($products) use (&$allProducts) {
+                $allProducts = $allProducts->merge($products);
+            });
+
+        $groupedProducts = $allProducts->groupBy('toko_id');
+        // dd($groupedProducts);
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $collection = $groupedProducts->values()->flatMap(function ($group) {
+            return $group;
+        });
+
+        $paginatedProducts = new LengthAwarePaginator(
+            $collection->forPage($currentPage, $row),
+            $collection->count(),
+            $row,
+            $currentPage,
+            ['path' => Paginator::resolveCurrentPath()]
+        );
+
+        return view('StaffGudang.products.stockToko.index', [
+            // 'products' => $products,
+            'groupedProducts' => $groupedProducts,
+            'paginatedProducts' => $paginatedProducts,
+        ]);
+    }
+
+    public function stockTokoDetail($id)
+    {
+        $row = (int) request('row', 10);
+
+        if ($row < 1 || $row > 100) {
+            abort(400, 'The per-page parameter must be an integer between 1 and 100.');
+        }
+
+        $products = ProductToko::where('product_code', $id)->with(['category', 'unit', 'supplier'])
+            ->filter(request(['search']))
+            ->sortable()
+            ->paginate($row)
+            ->appends(request()->query());
+
+        $product = ProductToko::where('product_code', $id)
+            ->with('unit')
+            ->with('category')
+            ->with('detailMasterValueBrand')
+            ->with('detailMasterValueGrade')
+            ->with('detailMasterValueGroup')
+            ->with('detailMasterValueType')
+            ->with('detailMasterValueItemType')
+            ->with('detailMasterValueMadeIn')
+            ->first();
+
+        $productUrl = route('stockToko.show', ['id' => $id]);
+
+        // dd($product);
+
+        // Generate a barcode
+        $barcode = QrCode::style('round')->eye('circle')->size(200)->format('svg')->generate($productUrl);
+
+        // Define the path to save the barcode
+        $directory = public_path('qrcode');
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+        $filename = 'qrcode-' . $id . '.svg';
+        $filePath = $directory . '/' . $filename;
+
+        // Save the barcode to the file
+        File::put($filePath, $barcode);
+        // dd($productUrl);
+        return view('StaffGudang.products.stockToko.show', [
+            'products' => $products,
+            'product' => $product,
+            'barcode' => $barcode,
+            'filename' => $filename,
+        ]);
+    }
+    // End
 }

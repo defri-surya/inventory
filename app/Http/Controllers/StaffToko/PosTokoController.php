@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use App\Http\Controllers\Controller;
+use App\Models\ListToko;
+use App\Models\ProductToko;
 
 class PosTokoController extends Controller
 {
@@ -24,7 +26,9 @@ class PosTokoController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
-        $products = Product::with(['category', 'unit'])
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
+        $products = ProductToko::with(['category', 'unit'])
+            ->where('toko_id', $tokoid->id)
             ->where('stock', '>', 0)
             ->filter(request(['search']))
             ->sortable()
@@ -122,12 +126,14 @@ class PosTokoController extends Controller
         $customer = Customer::where('id', $customer_id)->first();
         $sales = Customer::where('id', $agen_id)->first();
         $carts = Cart::content();
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         // dd($customer, $carts);
 
         return view('StaffToko.pos.create', [
             'customer' => $customer,
             'carts' => $carts,
             'sales' => $sales,
+            'tokoid' => $tokoid,
         ]);
     }
 }

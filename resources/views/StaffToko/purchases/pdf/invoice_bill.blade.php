@@ -214,7 +214,7 @@
                                         <tr>
                                             <td style="text-align: center; width:5%">{{ $key + 1 }}</td>
                                             <td style="text-align: start; width: 15%">
-                                                {{ $item->product->product_name }}
+                                                {{ $item->productToko->product_name }}
                                             </td>
                                             <td style="text-align: center; width: 15%">{{ $item->quantity }}</td>
                                             <td style="text-align: center; width: 15%">

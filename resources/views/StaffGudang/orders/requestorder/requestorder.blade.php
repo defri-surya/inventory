@@ -114,7 +114,7 @@
                                                 {{ $orders->currentPage() * (request('row') ? request('row') : 10) - (request('row') ? request('row') : 10) + $loop->iteration }}
                                             </th>
                                             <td>{{ $order->purchase_no }}</td>
-                                            <td>{{ $order->supplier->name }}</td>
+                                            <td>{{ $order->toko->name }}</td>
                                             <td>{{ $order->purchase_date }}</td>
                                             <td>{{ $order->total_amount_paid }}</td>
                                             <td>{{ $order->total_amount }}</td>

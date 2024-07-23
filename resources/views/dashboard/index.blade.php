@@ -122,10 +122,11 @@
         @endrole
         @role('Admin_Toko')
             @php
-                $purchase = App\Models\Purchase::where('bagian', 'Toko')->sum('total_amount_paid');
-                $sales = App\Models\Order::where('bagian', 'Toko')->sum('pay');
-                $purchaseReport = App\Models\Purchase::where('bagian', 'Toko')->count();
-                $salesReport = App\Models\Order::where('bagian', 'Toko')->count();
+                $tokoid = App\Models\ListToko::where('user_id', auth()->user()->id)->first();
+                $purchase = App\Models\Purchase::where('toko_id', $tokoid->id)->sum('total_amount_paid');
+                $sales = App\Models\Order::where('toko_id', $tokoid->id)->sum('pay');
+                $purchaseReport = App\Models\Purchase::where('toko_id', $tokoid->id)->count();
+                $salesReport = App\Models\Order::where('toko_id', $tokoid->id)->count();
             @endphp
             <div class="row">
                 <div class="col-lg-6 col-xl-3 mb-4">
@@ -201,10 +202,11 @@
         @endrole
         @role('Admin_Gud')
             @php
-                $purchase = App\Models\Purchase::where('bagian', 'Gudang')->sum('total_amount_paid');
-                $sales = App\Models\Order::where('bagian', 'Gudang')->sum('pay');
-                $purchaseReport = App\Models\Purchase::where('bagian', 'Gudang')->count();
-                $salesReport = App\Models\Order::where('bagian', 'Gudang')->count();
+                $gudangid = App\Models\Gudang::where('user_id', auth()->user()->id)->first();
+                $purchase = App\Models\Purchase::where('gudang_id', $gudangid->id)->sum('total_amount_paid');
+                $sales = App\Models\Order::where('gudang_id', $gudangid->id)->sum('pay');
+                $purchaseReport = App\Models\Purchase::where('gudang_id', $gudangid->id)->count();
+                $salesReport = App\Models\Order::where('gudang_id', $gudangid->id)->count();
             @endphp
             <div class="row">
                 <div class="col-lg-6 col-xl-3 mb-4">

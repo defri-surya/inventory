@@ -19,6 +19,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
 use App\Models\Gudang;
 use App\Models\ListToko;
+use App\Models\shoppingcart;
 
 class PurchaseTokoController extends Controller
 {
@@ -32,9 +33,9 @@ class PurchaseTokoController extends Controller
         if ($row < 1 || $row > 100) {
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
-
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['supplier', 'gudang'])->filter(request(['search']))
-            ->where('bagian', '=', 'Toko')
+            ->where('toko_id', $tokoid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -55,9 +56,10 @@ class PurchaseTokoController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['supplier'])
             ->where('purchase_status', 1) // 1 = approved
-            ->where('bagian', '=', 'Toko')
+            ->where('toko_id', $tokoid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -75,8 +77,9 @@ class PurchaseTokoController extends Controller
         $purchase = Purchase::with(['supplier', 'user_created', 'user_updated'])
             ->where('id', $purchase_id)
             ->first();
+        // dd($purchase);
 
-        $purchaseDetails = PurchaseDetails::with('product')
+        $purchaseDetails = PurchaseDetails::with('productToko')
             ->where('purchase_id', $purchase_id)
             ->orderBy('id')
             ->get();
@@ -96,7 +99,7 @@ class PurchaseTokoController extends Controller
         $toko = ListToko::where('user_id', auth()->user()->id)->first();
         // dd($toko);
 
-        $purchaseDetails = PurchaseDetails::with('product')
+        $purchaseDetails = PurchaseDetails::with('productToko')
             ->where('purchase_id', $purchase_id)
             ->orderBy('id')
             ->get();
@@ -114,7 +117,7 @@ class PurchaseTokoController extends Controller
             ->where('id', $purchase_id)
             ->first();
 
-        $purchaseDetails = PurchaseDetails::with('product')
+        $purchaseDetails = PurchaseDetails::with('productToko')
             ->where('purchase_id', $purchase_id)
             ->orderBy('id')
             ->get();
@@ -131,7 +134,7 @@ class PurchaseTokoController extends Controller
             ->where('id', $purchase_id)
             ->first();
 
-        $purchaseDetails = PurchaseDetails::with('product')
+        $purchaseDetails = PurchaseDetails::with('productToko')
             ->where('purchase_id', $purchase_id)
             ->orderBy('id')
             ->get();
@@ -152,9 +155,11 @@ class PurchaseTokoController extends Controller
      */
     public function createPurchase()
     {
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         return view('StaffToko.purchases.create-purchase', [
             'categories' => Category::all(),
-            'suppliers' => Gudang::all(),
+            'gudangs' => Gudang::all(),
+            'carts' => shoppingcart::with('product')->where('toko_id', $tokoid->id)->get(),
             //            'products' => Product::all(),
         ]);
     }
@@ -165,7 +170,7 @@ class PurchaseTokoController extends Controller
     public function storePurchase(Request $request)
     {
         $rules = [
-            'supplier_id' => 'required|string',
+            'gudang_id' => 'required|string',
             'purchase_date' => 'required|string',
             'no_faktur_pajak_pembelian' => 'required|string',
             'purchase_due_date' => 'required|string',
@@ -191,6 +196,7 @@ class PurchaseTokoController extends Controller
         ]);
 
         $validatedData = $request->validate($rules);
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
 
 
         //dd($purchase_no);
@@ -200,6 +206,7 @@ class PurchaseTokoController extends Controller
         $validatedData['created_by'] = auth()->user()->id;
         $validatedData['created_at'] = Carbon::now();
         $validatedData['bagian'] = 'Toko';
+        $validatedData['toko_id'] = $tokoid->id;
         // dd($validatedData);
 
         $purchase_id = Purchase::insertGetId($validatedData);
@@ -215,9 +222,14 @@ class PurchaseTokoController extends Controller
             $pDetails['total'] = $request->total[$i];
             $pDetails['created_at'] = Carbon::now();
             $pDetails['bagian'] = 'Toko';
+            $pDetails['toko_id'] = $tokoid->id;
+            $pDetails['gudang_id'] = $request->gudang_id;
 
             PurchaseDetails::insert($pDetails);
         }
+
+        shoppingcart::where('toko_id', $tokoid->id)->delete();
+
 
         //        validation supplier and product in products table
 
@@ -324,7 +336,7 @@ class PurchaseTokoController extends Controller
             ->where('id', $purchase_id)
             ->first();
 
-        $purchaseDetails = PurchaseDetails::with('product')
+        $purchaseDetails = PurchaseDetails::with('productToko')
             ->where('purchase_id', $purchase_id)
             ->orderBy('id')
             ->get();
@@ -361,9 +373,10 @@ class PurchaseTokoController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['supplier'])->filter(request(['search']))
             ->where('purchase_date', Carbon::now()->format('Y-m-d')) // 1 = approved
-            ->where('bagian', '=', 'Toko') // Additional condition for approved purchases
+            ->where('toko_id', $tokoid->id) // Additional condition for approved purchases
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -381,10 +394,11 @@ class PurchaseTokoController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['gudang'])->filter(request(['search']))
             ->whereDate('purchase_due_date', '<', Carbon::now()->format('Y-m-d')) // Filter purchases after the due date from now
             ->where('purchase_status', 1) // Additional condition for approved purchases
-            ->where('bagian', '=', 'Toko') // Additional condition for approved purchases
+            ->where('toko_id', $tokoid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -423,12 +437,13 @@ class PurchaseTokoController extends Controller
         //     ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
         //     ->get();
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $purchases = DB::table('purchase_details')
             ->join('products', 'purchase_details.product_id', '=', 'products.id')
             ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
             ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
             ->whereBetween('purchases.purchase_date', [$sDate, $eDate])
-            ->where('bagian', '=', 'Toko') // Additional condition for approved purchases
+            ->where('toko_id', $tokoid->id)
             // ->where('purchases.purchase_status', '1')
             ->select('purchases.purchase_no', 'purchases.purchase_date', 'purchases.purchase_due_date', 'purchases.supplier_id', 'products.product_code', 'products.product_name', 'purchase_details.quantity', 'purchase_details.unitcost', 'purchase_details.total', 'suppliers.name')
             ->get();
@@ -502,12 +517,13 @@ class PurchaseTokoController extends Controller
         //     ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
         //     ->get();
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $purchasesDaily = DB::table('purchase_details')
             ->join('products', 'purchase_details.product_id', '=', 'products.id')
             ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
             ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
             ->where('purchases.purchase_date', [$sDate])
-            ->where('bagian', '=', 'Toko') // Additional condition for approved purchases
+            ->where('toko_id', $tokoid->id)
             // ->where('purchases.purchase_status', '1')
             ->select('purchases.purchase_no', 'purchases.purchase_date', 'purchases.purchase_due_date', 'purchases.supplier_id', 'products.product_code', 'products.product_name', 'purchase_details.quantity', 'purchase_details.unitcost', 'purchase_details.total', 'suppliers.name')
             ->get();
@@ -582,13 +598,14 @@ class PurchaseTokoController extends Controller
         //     ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
         //     ->get();
 
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         $purchasesDue = DB::table('purchase_details')
             ->join('products', 'purchase_details.product_id', '=', 'products.id')
             ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
             ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
             ->where('purchases.purchase_date', '<', Carbon::now()->format('Y-m-d'))
             ->where('purchases.purchase_status', '1')
-            ->where('bagian', '=', 'Toko') // Additional condition for approved purchases
+            ->where('toko_id', $tokoid->id)
             ->select('purchases.purchase_no', 'purchases.purchase_date', 'purchases.purchase_due_date', 'purchases.supplier_id', 'products.product_code', 'products.product_name', 'purchase_details.quantity', 'purchase_details.unitcost', 'purchase_details.total', 'suppliers.name')
             ->get();
         // dd($purchasesDue);

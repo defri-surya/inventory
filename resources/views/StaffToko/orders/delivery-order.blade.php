@@ -136,16 +136,16 @@
         @foreach ($orderDetails as $item)
             <tr class="c8">
                 <td class="c23" colspan="1" rowspan="1">
-                    <p class="c1"><span class="c5">{{ $item->product->product_name }}</span></p>
+                    <p class="c1"><span class="c5">{{ $item->productToko->product_name }}</span></p>
                 </td>
                 <td class="c4" colspan="1" rowspan="1">
-                    <p class="c1"><span class="c5">{{ $item->product->detail }}</span></p>
+                    <p class="c1"><span class="c5">{{ $item->productToko->detail }}</span></p>
                 </td>
                 <td class="c21" colspan="1" rowspan="1">
                     <p class="c1"><span class="c5">{{ $item->quantity }}</span></p>
                 </td>
                 <td class="c18" colspan="1" rowspan="1">
-                    <p class="c1"><span class="c5">{{ $item->product->product_code }}</span></p>
+                    <p class="c1"><span class="c5">{{ $item->productToko->product_code }}</span></p>
                 </td>
             </tr>
         @endforeach

@@ -174,11 +174,11 @@
                                                 <td scope="row">
                                                     <div style="max-height: 80px; max-width: 80px;">
                                                         <img class="img-fluid"
-                                                            src="{{ $item->product->product_image ? asset('storage/products/' . $item->product->product_image) : asset('assets/img/products/default.webp') }}">
+                                                            src="{{ $item->productToko->product_image ? asset('storage/products/' . $item->productToko->product_image) : asset('assets/img/products/default.webp') }}">
                                                     </div>
                                                 </td>
-                                                <td scope="row">{{ $item->product->product_name }}</td>
-                                                <td scope="row">{{ $item->product->product_code }}</td>
+                                                <td scope="row">{{ $item->productToko->product_name }}</td>
+                                                <td scope="row">{{ $item->productToko->product_code }}</td>
                                                 <td scope="row">{{ $item->quantity }}</td>
                                                 <td scope="row">{{ $item->unitcost }}</td>
                                                 <td scope="row">{{ $item->total }}</td>

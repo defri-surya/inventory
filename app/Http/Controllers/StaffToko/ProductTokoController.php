@@ -20,8 +20,10 @@ use App\Http\Controllers\Controller;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\File;
 use App\Models\Gudang;
+use App\Models\ListToko;
 use App\Models\ProductToko;
 use App\Models\Supplier;
+use App\Models\shoppingcart;
 
 class ProductTokoController extends Controller
 {
@@ -35,9 +37,12 @@ class ProductTokoController extends Controller
         // Membuat kunci cache unik berdasarkan parameter query
         $cacheKey = 'products_' . http_build_query(request()->query());
 
+
         // Mendapatkan hasil dari cache atau menjalankan query jika cache tidak tersedia
         $view = Cache::remember($cacheKey, 60, function () use ($row) {
+            $toko_id = ListToko::where('user_id', auth()->user()->id)->first();
             $products = ProductToko::with(['category'])
+                ->where('toko_id', $toko_id->id)
                 ->filter(request(['search']))
                 ->sortable()
                 ->paginate($row)
@@ -98,7 +103,9 @@ class ProductTokoController extends Controller
         ];
         //        dd($request->all());
 
+        $toko_id = ListToko::where('user_id', auth()->user()->id)->first();
         $validatedData = $request->validate($rules);
+        $validatedData['toko_id'] = $toko_id->id;
 
         // dd($validatedData);
         // Save product code value
@@ -385,5 +392,35 @@ class ProductTokoController extends Controller
 
         // Redirect kembali dengan pesan sukses
         return redirect()->route('products-toko.index')->with('success', 'Status product telah diperbarui!');
+    }
+
+    // Add to cart purchase
+    public function addToCartPurchase(Request $request)
+    {
+        $rules = [
+            'product_id' => 'required',
+            'toko_id' => 'required',
+        ];
+
+        $validatedData = $request->validate($rules);
+
+        shoppingcart::create($validatedData);
+
+        return redirect()->back()->with('success', 'Product added to cart purchase successfully!');
+    }
+
+    public function removeCartPurchase($id)
+    {
+        $cart = shoppingcart::find($id);
+        if (!$cart) {
+            return response()->json(['error' => 'Cart item not found.'], 404);
+        }
+
+        try {
+            $cart->delete();
+            return response()->json(['success' => 'Product removed from cart purchase successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error deleting item: ' . $e->getMessage()], 500);
+        }
     }
 }

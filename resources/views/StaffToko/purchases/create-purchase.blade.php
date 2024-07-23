@@ -56,17 +56,17 @@
                                 </div>
                                 <!-- Form Group (supplier) -->
                                 <div class="col-md-6">
-                                    <label class="small my-1" for="supplier_id">Supplier <span
+                                    <label class="small my-1" for="supplier_id">Gudang <span
                                             class="text-danger">*</span></label>
                                     <br>
                                     <select
                                         class="form-control form-control-solid @error('supplier_id') is-invalid @enderror"
-                                        id="supplier_id" name="supplier_id" required>
-                                        <option value="" selected disabled>Select a supplier:</option>
-                                        @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->id }}"
-                                                @if (old('supplier_id') == $supplier->id) selected="selected" @endif>
-                                                {{ $supplier->name }}</option>
+                                        id="supplier_id" name="gudang_id" required>
+                                        <option value="" selected disabled>Pilih Gudang</option>
+                                        @foreach ($gudangs as $gudang)
+                                            <option value="{{ $gudang->id }}"
+                                                @if (old('gudang_id') == $gudang->id) selected="selected" @endif>
+                                                {{ $gudang->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('supplier_id')
@@ -149,7 +149,7 @@
                                     </select>
                                 </div>
                                 <!-- Form Group (product) -->
-                                <div class="col-md-5">
+                                <div class="col-md-6">
                                     <label class="small my-1" for="product_id">Product <span
                                             class="text-danger">*</span></label>
                                     <select class="form-select form-control-solid select2" id="product_id"
@@ -157,10 +157,11 @@
                                         <option disabled>Select a product:</option>
                                     </select>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <label class="small my-1"> </label>
-                                    <button class="btn btn-primary form-control addEventMore" type="button">Add
-                                        Product</button>
+                                    <button class="btn btn-outline-primary form-control addEventMore mt-1" type="button">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
                                 </div>
                             </div>
 
@@ -176,6 +177,41 @@
                                         </tr>
                                     </thead>
 
+                                    <tbody>
+                                        @forelse ($carts as $cart)
+                                            <tr class="delete_item_cart" id="delete_item_cart_{{ $cart->id }}">
+                                                <td>
+                                                    <input type="hidden" name="product_id[]"
+                                                        value="{{ $cart->product_id }}" required>
+                                                    {{ $cart->product->product_name }}
+                                                </td>
+
+                                                <td>
+                                                    <input type="number" min="1" class="form-control quantity"
+                                                        name="quantity[]" value="" required>
+                                                </td>
+
+                                                <td>
+                                                    <input type="number" class="form-control unitcost" name="unitcost[]"
+                                                        value="{{ $cart->product->buying_price }}" readonly>
+                                                </td>
+
+                                                <td>
+                                                    <input type="number" class="form-control total" name="total[]"
+                                                        value="0" readonly>
+                                                </td>
+
+                                                <td>
+                                                    <button type="button" class="btn btn-danger delete-item"
+                                                        data-id="{{ $cart->id }}">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                        @endforelse
+                                    </tbody>
+
                                     <tbody id="addRow" class="addRow">
 
                                     </tbody>
@@ -190,6 +226,15 @@
                                             </td>
                                             <td>PPN 12%</td>
                                         </tr>
+                                        <tr>
+                                            <td colspan="3">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="total_amount_paid" value="0"
+                                                    id="total_amount_paid" class="form-control total_amount_paid">
+                                            </td>
+                                            <td>Uang Muka</td>
+                                        </tr>
                                         <tr class="table-primary">
                                             <td colspan="3"></td>
                                             <td>
@@ -202,15 +247,6 @@
                                                     Beli
                                                 </button>
                                             </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="3">
-                                            </td>
-                                            <td>
-                                                <input type="text" name="total_amount_paid" value="0"
-                                                    id="total_amount_paid" class="form-control total_amount_paid">
-                                            </td>
-                                            <td>Uang Muka</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -408,6 +444,39 @@
             categorySelect.on('select2:unselect', function() {
                 // Clear and disable the product select
                 productSelect.val(null).trigger('change').prop('disabled', true);
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.delete-item').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var itemId = this.getAttribute('data-id');
+                    var confirmed = confirm('Are you sure you want to delete this item?');
+                    if (confirmed) {
+                        fetch(`/remove-item-cart/purchase/${itemId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            }
+                        }).then(response => {
+                            return response.json().then(data => {
+                                if (response.ok) {
+                                    document.getElementById('delete_item_cart_' +
+                                        itemId).remove();
+                                } else {
+                                    alert('Error deleting item: ' + data.error);
+                                }
+                            });
+                        }).catch(error => {
+                            console.error('Error:', error);
+                            alert('Error deleting item: ' + error.message);
+                        });
+                    }
+                });
             });
         });
     </script>

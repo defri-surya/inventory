@@ -177,13 +177,21 @@
 
             @role('Admin_Gud')
                 @php
-                    $notif = App\Models\Purchase::where('purchase_status', '0')->count();
+                    $gudangid = App\Models\Gudang::where('user_id', auth()->user()->id)->first();
+                    $notif = App\Models\Purchase::where('gudang_id', $gudangid->id)
+                        ->where('purchase_status', '0')
+                        ->count();
                 @endphp
                 <div class="sidenav-menu-heading">Management Products</div>
                 <a class="nav-link {{ Request::is('products-gudang*') ? 'active' : '' }}"
                     href="{{ route('products-gudang.index') }}">
                     <div class="nav-link-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-                    Produk
+                    Produk Gudang
+                </a>
+                <a class="nav-link {{ Request::is('stock-toko*') ? 'active' : '' }}"
+                    href="{{ route('stockToko.index') }}">
+                    <div class="nav-link-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    Stok Toko
                 </a>
                 <a class="nav-link {{ Request::is('categories*') ? 'active' : '' }}"
                     href="{{ route('categories.index') }}">

@@ -87,4 +87,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports-toko/sales', [ReportSalesTokoController::class, 'allSales'])->name('reportsToko.sales');
     Route::post('/sales-toko/export', [ReportSalesTokoController::class, 'ExportSalesReport'])->name('salesToko.ExportSalesReport');
     // End
+
+    // Add to cart purchase
+    Route::post('/add-cart/purchase', [ProductTokoController::class, 'addToCartPurchase'])->name('purchasesToko.addCartItem');
+    Route::delete('/remove-item-cart/purchase/{id}', [ProductTokoController::class, 'removeCartPurchase'])->name('purchasesToko.removeCartItem');
+    // End
 });

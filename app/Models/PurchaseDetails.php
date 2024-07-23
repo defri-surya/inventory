@@ -15,6 +15,8 @@ class PurchaseDetails extends Model
         'unitcost',
         'total',
         'bagian',
+        'toko_id',
+        'gudang_id',
     ];
 
     protected $guarded = [
@@ -26,6 +28,11 @@ class PurchaseDetails extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    public function productToko()
+    {
+        return $this->belongsTo(ProductToko::class, 'product_id', 'id');
     }
 
     public function purchase()

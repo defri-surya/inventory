@@ -34,6 +34,7 @@
     <div class="container-xl px-2 mt-n10">
         <form action="{{ route('products-toko.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
+
             <div class="row">
                 <div class="col-xl-4">
                     <!-- Produk image card-->

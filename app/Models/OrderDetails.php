@@ -10,6 +10,8 @@ class OrderDetails extends Model
     use HasFactory;
     protected $fillable = [
         'order_id',
+        'toko_id',
+        'gudang_id',
         'product_id',
         'quantity',
         'unitcost',
@@ -24,6 +26,11 @@ class OrderDetails extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    public function productToko()
+    {
+        return $this->belongsTo(ProductToko::class, 'product_id', 'id');
     }
 
     public function order()

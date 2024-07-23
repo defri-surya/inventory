@@ -240,7 +240,7 @@
                                     @foreach ($purchaseDetails as $key => $item)
                                         <tr>
                                             <td class="text-center">{{ $key + 1 }}</td>
-                                            <td>{{ $item->product->product_name }}</td>
+                                            <td>{{ $item->productToko->product_name }}</td>
                                             <td class="text-right">{{ $item->quantity }}</td>
                                             <td class="text-right">{{ $item->unitcost }}</td>
                                             <td class="text-right">{{ $item->total }}</td>

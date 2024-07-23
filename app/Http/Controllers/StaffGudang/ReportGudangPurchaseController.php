@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\StaffGudang;
 
 use App\Http\Controllers\Controller;
+use App\Models\Gudang;
 use App\Models\Purchase;
 use Illuminate\Http\Request;
 
@@ -16,8 +17,9 @@ class ReportGudangPurchaseController extends Controller
             abort(400, 'The per-page parameter must be an integer between 1 and 100.');
         }
 
+        $gudang = Gudang::where('user_id', auth()->user()->id)->first();
         $purchases = Purchase::with(['supplier'])->filter(request(['search']))
-            ->where('bagian', 'Gudang')
+            ->where('gudang_id', $gudang->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
