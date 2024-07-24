@@ -75,6 +75,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders-toko/due/pay/{order_id}', [OrderTokoController::class, 'dueOrderDetails'])->name('orderToko.dueOrderDetails');
     Route::put('/orders-toko/due/pay/update', [OrderTokoController::class, 'updateDueOrder'])->name('orderToko.updateDueOrder');
     Route::put('/orders-toko/update', [OrderTokoController::class, 'updateOrder'])->name('orderToko.updateOrder');
+    Route::get('/orders-toko/print-invoice/{id}', [OrderTokoController::class, 'printInvoice'])->name('orderToko.printInvoice');
     // End
 
     // Order Surat Jalan

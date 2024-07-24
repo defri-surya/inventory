@@ -21,7 +21,7 @@ class OrderDetails extends Model
     protected $guarded = [
         'id',
     ];
-    protected $with = ['product'];
+    // protected $with = ['product'];
 
     public function product()
     {

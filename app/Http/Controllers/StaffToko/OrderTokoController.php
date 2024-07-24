@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Redirect;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\ListToko;
 use App\Models\ProductToko;
 
@@ -148,7 +149,7 @@ class OrderTokoController extends Controller
         $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
 
         $validatedData['order_date'] = Carbon::now()->format('Y-m-d');
-        $validatedData['order_status'] = 'pending';
+        $validatedData['order_status'] = 'complete';
         $validatedData['bagian'] = 'Toko';
         $validatedData['toko_id'] = $tokoid->id;
         $validatedData['total_products'] = Cart::count();
@@ -183,7 +184,7 @@ class OrderTokoController extends Controller
         // Delete Cart Sopping History
         Cart::destroy();
 
-        return Redirect::route('orderToko.pendingOrders')->with('success', 'Order has been created!');
+        return Redirect::route('orderToko.orderCompleteDetails', $order_id)->with('success', 'Order has been created!');
     }
 
     /**
@@ -231,6 +232,25 @@ class OrderTokoController extends Controller
         ]);
 
         return Redirect::route('orderToko.dueOrders')->with('success', 'Due amount has been updated!');
+    }
+
+    public function printInvoice(Int $order_id)
+    {
+        $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
+        $order = Order::with('customer')->where('id', $order_id)->first();
+        $customer = Customer::where('id', $order->customer_id)->first();
+        $orderDetails = OrderDetails::with('productToko')
+            ->where('order_id', $order_id)
+            ->get();
+        // dd($orderDetails);
+
+        return view('StaffToko.orders.struck-invoice', [
+            'order' => $order,
+            'tokoid' => $tokoid,
+            'customer' => $customer,
+            // 'delivery' => $deliveryOrder,
+            'orderDetails' => $orderDetails,
+        ]);
     }
 
     /**

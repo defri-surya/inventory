@@ -129,7 +129,7 @@ class PosTokoController extends Controller
         $tokoid = ListToko::where('user_id', auth()->user()->id)->first();
         // dd($customer, $carts);
 
-        return view('StaffToko.pos.create', [
+        return view('StaffToko.pos.struck', [
             'customer' => $customer,
             'carts' => $carts,
             'sales' => $sales,

@@ -115,13 +115,13 @@
 
 
                         <!-- Button to trigger the modal -->
-                        @if (!isset($deliveryOrder))
+                        {{-- @if (!isset($deliveryOrder))
                             <a href="{{ route('delivery-orderToko.create', $order->id) }}" class="btn btn-primary mb-1">
                                 Buat Surat Jalan
                             </a>
-                        @endif
+                        @endif --}}
 
-                        @if ($order->order_status == 'pending')
+                        {{-- @if ($order->order_status == 'pending')
                             <form action="{{ route('orderToko.updateOrder') }}" method="POST">
                                 @method('put')
                                 @csrf
@@ -133,13 +133,17 @@
                                 </button>
                                 <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
                             </form>
-                        @else
-                            <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
-                            @if (isset($deliveryOrder))
+                        @else --}}
+                        <a class="btn btn-primary" href="{{ URL::previous() }}">Back</a>
+                        <a href="{{ route('orderToko.printInvoice', $order->id) }}" class="btn btn-outline-primary"
+                            target="_blank">
+                            <i class="fa-solid fa-print"></i>&nbsp;Print Invoice
+                        </a>
+                        {{-- @if (isset($deliveryOrder))
                                 <a class="btn btn-primary" href="{{ route('orderToko.deliveryOrder', $order->id) }}">Surat
                                     Jalan</a>
-                            @endif
-                        @endif
+                            @endif --}}
+                        {{-- @endif --}}
                     </div>
                 </div>
             </div>
