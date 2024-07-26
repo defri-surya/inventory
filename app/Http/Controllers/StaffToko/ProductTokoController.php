@@ -423,4 +423,97 @@ class ProductTokoController extends Controller
             return response()->json(['error' => 'Error deleting item: ' . $e->getMessage()], 500);
         }
     }
+
+    // Stock Gudang
+    public function stockGudang()
+    {
+        $row = (int) request('row', 10);
+
+        if ($row < 1 || $row > 100) {
+            abort(400, 'The per-page parameter must be an integer between 1 and 100.');
+        }
+        // Membuat kunci cache unik berdasarkan parameter query
+        $cacheKey = 'stock_gudang_' . http_build_query(request()->query());
+
+
+        // Mendapatkan hasil dari cache atau menjalankan query jika cache tidak tersedia
+        $view = Cache::remember($cacheKey, 60, function () use ($row) {
+            $toko_id = ListToko::where('user_id', auth()->user()->id)->first();
+            $products = ProductToko::where('toko_id', $toko_id->id)
+                ->get();
+
+            // Kumpulkan semua gudang_id dari produk toko
+            $gudangIds = $products->pluck('gudang_id')->unique();
+
+            // Dapatkan stockgudang berdasarkan gudang_id yang telah dikumpulkan
+            $stockgudangs = Product::with(['category'])
+                ->whereIn('gudang_id', $gudangIds)
+                ->filter(request(['search']))
+                ->sortable()
+                ->paginate($row)
+                ->appends(request()->query());;
+
+            return view('StaffToko.stockGudang.index', [
+                'products' => $products,
+                'stockgudangs' => $stockgudangs
+            ])->render();
+        });
+
+        return $view;
+    }
+
+    public function stockGudangDetail($name)
+    {
+
+        $row = (int) request('row', 10);
+
+        if ($row < 1 || $row > 100) {
+            abort(400, 'The per-page parameter must be an integer between 1 and 100.');
+        }
+
+        $products = Product::where('product_name', '=', $name)->with(['category', 'unit', 'supplier'])
+            ->filter(request(['search']))
+            ->sortable()
+            ->paginate($row)
+            ->appends(request()->query());
+
+        $product = Product::where('product_name', '=', $name)
+            ->with('unit')
+            ->with('category')
+            ->with('detailMasterValueBrand')
+            ->with('detailMasterValueGrade')
+            ->with('detailMasterValueGroup')
+            ->with('detailMasterValueType')
+            ->with('detailMasterValueItemType')
+            ->with('detailMasterValueMadeIn')
+            ->first();
+
+        $productUrl = route('products-toko.show', ['name' => $name]);
+
+        // dd($product);
+
+        // Generate a barcode
+        $barcode = QrCode::style('round')->eye('circle')->size(200)->format('svg')->generate($productUrl);
+
+        // Define the path to save the barcode
+        $directory = public_path('qrcode');
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+        $filename = 'qrcode-' . $name . '.svg';
+        $filePath = $directory . '/' . $filename;
+
+        // Save the barcode to the file
+        File::put($filePath, $barcode);
+        // dd($productUrl);
+
+        return view('StaffToko.stockGudang.show', [
+            'products' => $products,
+            'product' => $product,
+            'barcode' => $barcode,
+            'filename' => $filename,
+
+        ]);
+    }
+    // End
 }

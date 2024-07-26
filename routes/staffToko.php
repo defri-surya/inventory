@@ -30,6 +30,11 @@ Route::middleware('auth')->group(function () {
     Route::put('change-status-product-toko/{id}', [ProductTokoController::class, 'changeStatus'])->name('change-status-product-toko');
     // End
 
+    // Route Stock Gudang
+    Route::get('/stock-gudang', [ProductTokoController::class, 'stockGudang'])->name('stockGudang.index');
+    Route::get('/stock-gudang/detail/{name}', [ProductTokoController::class, 'stockGudangDetail'])->name('stockGudang.show');
+    // End
+
     // Route Purchases
     Route::get('/purchases-toko', [PurchaseTokoController::class, 'allPurchases'])->name('purchasesToko.allPurchases');
     Route::get('/purchases-toko/approved', [PurchaseTokoController::class, 'approvedPurchases'])->name('purchasesToko.approvedPurchases');

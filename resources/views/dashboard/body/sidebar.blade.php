@@ -116,6 +116,11 @@
                     <div class="nav-link-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
                     Produk
                 </a>
+                <a class="nav-link {{ Request::is('stock-gudang*') ? 'active' : '' }}"
+                    href="{{ route('stockGudang.index') }}">
+                    <div class="nav-link-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    Stock Gudang
+                </a>
                 <a class="nav-link {{ Request::is('categories*') ? 'active' : '' }}"
                     href="{{ route('categories.index') }}">
                     <div class="nav-link-icon"><i class="fa-solid fa-folder"></i></div>
