@@ -158,7 +158,7 @@
                                         </p>
                                     </td>
                                 </tr>
-                                <tr>
+                                {{-- <tr>
                                     <td>  </td>
                                     <td class="text-right" colspan="2">
                                         <p>
@@ -170,7 +170,7 @@
                                             <strong>Rp. {{ Cart::tax() }}</strong>
                                         </p>
                                     </td>
-                                </tr>
+                                </tr> --}}
                                 <tr>
                                     <td>  </td>
                                     <td class="text-right" colspan="2">

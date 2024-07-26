@@ -1,9 +1,5 @@
 @extends('dashboard.body.main')
 
-@section('specificpagescripts')
-    <script src="{{ asset('assets/js/img-preview.js') }}"></script>
-@endsection
-
 @section('content')
     <!-- BEGIN: Header -->
     <header class="page-header page-header-compact page-header-light border-bottom bg-white mb-4">
@@ -55,7 +51,7 @@
                     <div class="card-body">
                         <!-- BEGIN: Search products -->
                         <div class="col-lg-12">
-                            <form action="{{ route('posToko.index') }}" method="GET">
+                            <form id="searchForm" action="{{ route('posToko.index') }}" method="GET">
                                 <div class="d-flex flex-wrap align-items-center justify-content-between">
                                     <div class="form-group row align-items-center">
                                         <label for="row" class="col-auto">Row:</label>
@@ -73,6 +69,7 @@
                                             </select>
                                         </div>
                                     </div>
+
                                     <div class="form-group row align-items-center justify-content-between">
                                         <label class="control-label col-sm-3" for="search">Search:</label>
                                         <div class="col-sm-8">
@@ -80,10 +77,43 @@
                                                 <input type="text" id="search" class="form-control me-1"
                                                     name="search" placeholder="Search product"
                                                     value="{{ request('search') }}">
+
+                                                <div class="input-group-append d-flex">
+                                                    <!-- Modal button search scan Barcode -->
+                                                    <button type="button" class="btn btn-sm rounded position-relative"
+                                                        data-bs-toggle="modal" data-bs-target="#modalScanBarcodePos">
+                                                        <i class="fa-solid fa-qrcode fs-1"></i>
+                                                    </button>
+
+                                                    <!-- Modal search scan Barcodel -->
+                                                    <div class="modal fade" id="modalScanBarcodePos" tabindex="-1"
+                                                        aria-labelledby="modalScanBarcodePosLabel" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="exampleModalLabel">
+                                                                        Search from barcode
+                                                                    </h5>
+                                                                    <button type="button" class="btn-close"
+                                                                        data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body text-dark">
+                                                                    <div id="readerPos" width="600px"></div>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary"
+                                                                        data-bs-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <div class="input-group-append d-flex">
                                                     <button type="submit" class="input-group-text bg-primary"><i
                                                             class="fa-solid fa-magnifying-glass font-size-20 text-white"></i></button>
-                                                    <a href="{{ route('pos.index') }}" class="input-group-text bg-danger"><i
+                                                    <a href="{{ route('posToko.index') }}"
+                                                        class="input-group-text bg-danger"><i
                                                             class="fa-solid fa-trash font-size-20 text-white"></i></a>
                                                 </div>
                                             </div>
@@ -101,9 +131,9 @@
                                     <thead class="thead-light">
                                         <tr>
                                             <th scope="col">No.</th>
+                                            <th scope="col">Foto</th>
                                             <th scope="col">@sortablelink('product_name', 'Name')</th>
                                             <th scope="col">@sortablelink('stock')</th>
-                                            <th scope="col">@sortablelink('category.satuan', 'unit')</th>
                                             <th scope="col">Diskon</th>
                                             <th scope="col">@sortablelink('selling_price', 'Price')</th>
                                             <th scope="col">Action</th>
@@ -130,10 +160,11 @@
                                                     <td>
                                                         {{ $product->discount_price }}
                                                     </td>
-                                                    <td>{{ $discount }}</td>
+                                                    <td>Rp. {{ number_format($discount, 0) }}</td>
                                                     <td>
                                                         <div class="d-flex">
-                                                            <form action="{{ route('posToko.addCartItem', $product->id) }}"
+                                                            <form
+                                                                action="{{ route('posToko.addCartItem', $product->id) }}"
                                                                 method="POST">
                                                                 @csrf
                                                                 <input type="hidden" name="id"
@@ -160,10 +191,11 @@
                                                     <td>
                                                         {{ $product->discount_percent }} %
                                                     </td>
-                                                    <td>{{ $price }}</td>
+                                                    <td>Rp. {{ number_format($price, 0) }}</td>
                                                     <td>
                                                         <div class="d-flex">
-                                                            <form action="{{ route('posToko.addCartItem', $product->id) }}"
+                                                            <form
+                                                                action="{{ route('posToko.addCartItem', $product->id) }}"
                                                                 method="POST">
                                                                 @csrf
                                                                 <input type="hidden" name="id"
@@ -221,7 +253,7 @@
                                         <th scope="col">Name</th>
                                         <th scope="col">QTY</th>
                                         <th scope="col">Price</th>
-                                        <th scope="col">SubTotal</th>
+                                        <th scope="col">Subtotal</th>
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
@@ -246,7 +278,7 @@
                                                 </form>
                                             </td>
                                             <td>{{ $item->price }}</td>
-                                            <td>{{ $item->subtotal }}</td>
+                                            <td>Rp. {{ number_format($item->subtotal, 0) }}</td>
                                             <td>
                                                 <div class="d-flex">
                                                     <form action="{{ route('posToko.deleteCartItem', $item->rowId) }}"
@@ -276,22 +308,23 @@
                             </div>
                             <!-- Form Group (subtotal) -->
                             <div class="col-md-6">
-                                <label class="small mb-1">Subtotal</label>
-                                <div class="form-control form-control-solid fw-bold text-red">{{ Cart::subtotal() }}</div>
+                                <label class="small mb-1">Total</label>
+                                <div class="form-control form-control-solid fw-bold text-red">{{ Cart::subtotal() }}
+                                </div>
                             </div>
                         </div>
                         <!-- Form Row -->
                         <div class="row gx-3 mb-3">
                             <!-- Form Group (tax) -->
-                            <div class="col-md-6">
+                            {{-- <div class="col-md-6">
                                 <label class="small mb-1">Tax</label>
                                 <div class="form-control form-control-solid fw-bold text-red">{{ Cart::tax() }}</div>
-                            </div>
+                            </div> --}}
                             <!-- Form Group (total) -->
-                            <div class="col-md-6">
+                            {{-- <div class="col-md-6">
                                 <label class="small mb-1">Discount</label>
                                 <div class="form-control form-control-solid fw-bold text-red">{{ Cart::total() }}</div>
-                            </div>
+                            </div> --}}
                         </div>
                         <!-- Form Group (customer) -->
 
@@ -353,4 +386,78 @@
             <!-- END: Section Left -->
         </div>
     </div>
+@endsection
+
+@section('specificpagescripts')
+    <script src="{{ asset('assets/js/img-preview.js') }}"></script>
+
+    <script src="{{ asset('assets/js/html5-qrcode.min.js') }}" type="text/javascript"></script>
+    <script>
+        let html5QrcodeScanner;
+
+        function onScanSuccessPos(decodedTextPos, decodedResultPos) {
+            console.log(`Code matched = ${decodedTextPos}`, decodedResultPos);
+
+            // Cek apakah hasil scan adalah URL
+            try {
+                const url = new URL(decodedTextPos);
+                const pathSegments = url.pathname.split('/');
+                const lastSegment = decodeURIComponent(pathSegments[pathSegments.length - 1]);
+                console.log(`Extracted part of URL: ${lastSegment}`);
+
+                // Masukkan hasil ke input field dan submit form
+                const searchInput = document.getElementById('search');
+                searchInput.value = lastSegment;
+
+                // Tutup modal
+                const modalElement = document.getElementById('modalScanBarcodePos');
+                const modal = bootstrap.Modal.getInstance(modalElement); // Bootstrap 5 method
+                modal.hide();
+
+                // Submit form
+                const searchForm = document.getElementById('searchForm');
+                searchForm.submit();
+            } catch (e) {
+                console.log(`Result is not a valid URL: ${decodedTextPos}`);
+            }
+
+            // Hentikan scanner setelah mendapatkan hasil
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    console.log("Scanner stopped.");
+                }).catch(error => {
+                    console.error("Failed to clear scanner. Error:", error);
+                });
+            }
+        }
+
+        function onScanFailurePos(error) {
+            console.warn(`Code scan error = ${error}`);
+        }
+
+        document.getElementById('modalScanBarcodePos').addEventListener('show.bs.modal', function() {
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "readerPos", {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        }
+                    },
+                    false);
+            }
+            html5QrcodeScanner.render(onScanSuccessPos, onScanFailurePos);
+        });
+
+        document.getElementById('modalScanBarcodePos').addEventListener('hidden.bs.modal', function() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    console.log("Scanner stopped.");
+                }).catch(error => {
+                    console.error("Failed to clear scanner. Error:", error);
+                });
+            }
+        });
+    </script>
 @endsection

@@ -217,7 +217,7 @@
                                     </tbody>
 
                                     <tbody>
-                                        <tr>
+                                        {{-- <tr>
                                             <td colspan="3">
                                             </td>
                                             <td>
@@ -225,7 +225,7 @@
                                                     class="form-control total_amount_paid" readonly>
                                             </td>
                                             <td>PPN 12%</td>
-                                        </tr>
+                                        </tr> --}}
                                         <tr>
                                             <td colspan="3">
                                             </td>
@@ -239,7 +239,7 @@
                                             <td colspan="3"></td>
                                             <td>
                                                 <input type="text" name="total_amount" value="0"
-                                                    id="total_amount_with_tax" class="form-control total_amount" readonly>
+                                                    id="total_amount" class="form-control total_amount" readonly>
                                             </td>
                                             <td>
                                                 <button type="submit" class="btn btn-outline-success"
@@ -364,14 +364,6 @@
                     }
                 });
                 $('#total_amount').val(sum);
-
-                // Calculate tax
-                var tax = sum * 0.12; // 12% PPN
-                $('#tax_amount').val(tax.toFixed()); // Update the tax amount
-
-                // Calculate total amount including tax
-                var totalWithTax = sum + tax;
-                $('#total_amount_with_tax').val(totalWithTax.toFixed());
             }
         });
     </script>
