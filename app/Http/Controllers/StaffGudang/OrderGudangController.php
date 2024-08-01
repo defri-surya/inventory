@@ -77,7 +77,7 @@ class OrderGudangController extends Controller
 
         $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
         $orders = Order::where('due', '>', '0')->filter(request(['search']))
-            ->where('supplier_id', $gudangid->id)
+            ->where('gudang_id', $gudangid->id)
             ->sortable()
             ->paginate($row)
             ->appends(request()->query());
@@ -96,7 +96,7 @@ class OrderGudangController extends Controller
         $gudangid = Gudang::where('user_id', auth()->user()->id)->first();
 
         $orderDetails = OrderDetails::with('product')
-            ->where('supplier', $gudangid->id)
+            ->where('gudang_id', $gudangid->id)
             ->where('order_id', $order_id)
             ->orderBy('id')
             ->get();
